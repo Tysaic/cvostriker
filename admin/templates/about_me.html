@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 
-{% block title %}about me{% endblock title %}
+{% block title %}General Info{% endblock title %}
 {% block content %}
-About me
+    <h1>General Info</h1>
+    {% if general_info %}
+        {{ general_info.id }}<br>
+        {{ general_info.name }}<br>
+        {{ general_info.email }}<br>
+        {{ general_info.phone }}<br>
+        {{ general_info.address }}<br>
+        {{ general_info.country }}<br>
+        {{ general_info.short_description }}<br>
+    {% endif %}
 {% endblock content %}

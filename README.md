@@ -12,7 +12,12 @@ The Curriculum Vitae Management System (CVMS) is a web-based application designe
 
 ### Project Structure
 
-flask-Project/ | ├── admin/ │ └── app.py  ├── public/ │ └── app.py │ └── main.py
+flask-Project/ 
+    ├── admin/ 
+        └── app.py  
+    ├── public/ 
+        └── app.py  
+        └── main.py
 
 ### How to Run
 
