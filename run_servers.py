@@ -3,8 +3,8 @@ import signal
 import sys
 
 def run_server(script, port):
-    print(f'[+] starting application server "{script}" on port {port}')
-    return subprocess.Popen(['python', script, '--port', str(port)], shell=True)
+    print(f'[+] starting application service "{script[1]}" on port {port}')
+    return subprocess.Popen(['python', script[0], '--port', str(port)], shell=True)
 
 # CTRL + C to stop the servers
 
@@ -17,10 +17,15 @@ def signal_handler(sig, frame):
 
 
 if __name__ == '__main__':
+    applications_names = [
+        ('main.py', 'main'),
+        ('public/app.py', 'public'),
+        ('admin/app.py', 'admin')
+    ]
     servers = [
-        run_server('main.py', 5000),
-        run_server('public/app.py', 5001),
-        run_server('admin/app.py', 5002),
+        run_server(applications_names[0], 5000),
+        run_server(applications_names[1], 5001),
+        run_server(applications_names[2], 5002),
     ]
 
     # Signal handler ctrl + c => signal.SIGINT

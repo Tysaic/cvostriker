@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock title %} - CVOStriker</title>
+</head>
+<body>
+    <!--If user is authenticated-->
+    <nav>
+        <li>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </li>
+        <li>
+            <a href="{{ url_for('about_me') }}">About Me</a>
+        </li>
+        <li>
+            <a href="{{ url_for('multimedia') }}">Multimedia & Images</a>
+        </li>
+        <li>
+            <a href="{{ url_for('experience') }}">Experience</a>
+        </li>
+        <li>
+            <a href="{{ url_for('certificates') }}">Certificates</a>
+        </li>
+        <li>
+            <a href="{{ url_for('projects') }}">Projects</a>
+        </li>
+        <li>
+            <a href="{{ url_for('pdf_generator') }}">PDF Generator</a>
+        </li>
+    </nav>
+    {% block content %}
+        <h1>Welcome to the CVOStriker Admin Dashboard</h1>
+        <p>This is the admin dashboard where you can manage your CVOStriker application.</p>
+    {% endblock content %}
+</body>
+</html>
