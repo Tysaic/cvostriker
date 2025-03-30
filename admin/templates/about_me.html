@@ -3,7 +3,7 @@
 {% block title %}General Info{% endblock title %}
 {% block content %}
     <h1>General Info</h1>
-    <form action="{{ url_for ('about_me') }}" method="POST">
+    <form action="{{ url_for ('about_me') }}" method="POST" enctype="multipart/form-data">
 
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" value="{{ general_info.name if general_info else '' }}"><br>

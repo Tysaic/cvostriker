@@ -1,3 +1,7 @@
 admin/media/*
 database.db
 notes.md
+__pycache__/
+__pycache__/*
+admin/__pycache__/
+admin/__pycache__/*

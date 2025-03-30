@@ -2,5 +2,18 @@
 
 {% block title %}Multimedia{% endblock title %}
 {% block content %}
-Images here
+
+{% for multimedia in multimedia_files %}
+    <img src="{{ url_for('uploaded_file', filename = multimedia.filename ) }}" alt="Example">
+{% endfor %}
+
+
+
+<h2>Upload Multimedia</h2>
+
+<form action="{{ url_for('multimedia') }}" method="POST" enctype="multipart/form-data">
+    <label for="file">Select File:</label>
+    <input type="file" id="file" name="file" accept="image/*,video/*" required><br>
+    <button type="submit">Upload</button>
+</form>
 {% endblock content %}
