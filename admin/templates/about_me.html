@@ -3,13 +3,30 @@
 {% block title %}General Info{% endblock title %}
 {% block content %}
     <h1>General Info</h1>
-    {% if general_info %}
-        {{ general_info.id }}<br>
-        {{ general_info.name }}<br>
-        {{ general_info.email }}<br>
-        {{ general_info.phone }}<br>
-        {{ general_info.address }}<br>
-        {{ general_info.country }}<br>
-        {{ general_info.short_description }}<br>
-    {% endif %}
+    <form action="{{ url_for ('about_me') }}" method="POST">
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" value="{{ general_info.name if general_info else '' }}"><br>
+
+        <label for="coname">Coname:</label>
+        <input type="text" id="coname" name="coname" value="{{ general_info.coname if general_info else '' }}"><br>
+
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" value="{{ general_info.email if general_info else '' }}"><br>
+
+        <label for="phone">Phone:</label>
+        <input type="text" id="phone" name="phone" value="{{ general_info.phone if general_info else '' }}"><br>
+
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" value="{{ general_info.address if general_info else '' }}"><br>
+
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country" value="{{ general_info.country if general_info else '' }}"><br>
+
+        <label for="short_description">Short Description:</label>
+        <textarea id="short_description" name="short_description">{{ general_info.short_description if general_info else '' }}</textarea><br>
+
+        <button type="submit">Save</button>
+        
+    </form>
 {% endblock content %}

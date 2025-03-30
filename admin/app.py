@@ -20,11 +20,41 @@ def dashboard():
 def about_me():
     session = SessionLocal()
     general_info = session.query(GeneralInfo).get(1)
+
     if request.method == 'GET':
         if general_info:
             return render_template('about_me.html', general_info=general_info)
         else:
             return render_template('about_me.html', general_info=None)
+
+    elif request.method == 'POST':
+        if general_info:
+            general_info.name = request.form['name']
+            general_info.coname = request.form['coname']
+            general_info.address = request.form['address']
+            general_info.country = request.form['country']
+            general_info.email = request.form['email']
+            general_info.phone = request.form['phone']
+            general_info.short_description = request.form['short_description']
+            session.commit()
+            session.refresh(general_info)
+            session.close()
+        else:
+            new_info = GeneralInfo(
+                name=request.form['name'],
+                coname=request.form['coname'],
+                address=request.form['address'],
+                country=request.form['country'],
+                email=request.form['email'],
+                phone=request.form['phone'],
+                short_description=request.form['short_description']
+            )
+            session.add(new_info)
+            session.commit()
+            session.refrest(new_info)
+            session.close()
+        
+        return redirect(url_for('about_me'))
 
 
 
@@ -56,11 +86,11 @@ def create_new_user():
     new_user = GeneralInfo(
         name = 'John',
         coname = 'Doe',
-        address = 'Calle 123',
-        country = 'Mexico',
-        email = 'sockerpunch@mail.com',
+        address = 'Street ###',
+        country = 'USA',
+        email = 'fakemail@mail.com',
         phone = '123456789',
-        short_description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        short_description = 'Short description here!'
     )
     session.add(new_user)
     session.commit()
