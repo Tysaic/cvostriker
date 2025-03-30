@@ -22,14 +22,14 @@ SessionFactory = sessionmaker(
 )
 
 # Each request need to create new session with scoped_session
-SessionLocal = scoped_session(SessionFactory)
+Session = scoped_session(SessionFactory)
 
 # Declared to create the base class for models
 Base = declarative_base()
 
 # Definition to get sessions
 def get_session():
-    session = SessionLocal
+    session = Session
     try:
         yield session
     finally:

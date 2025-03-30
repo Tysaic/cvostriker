@@ -1,5 +1,7 @@
 from database import Base
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from flask import jsonify
 
 
 class GeneralInfo(Base):
@@ -16,7 +18,7 @@ class GeneralInfo(Base):
 
     def general_info_as_json(id):
         general_info = GeneralInfo.query.get(id)
-        return {
+        return jsonify({
             'id' : id,
             'name': general_info.name,
             'coname': general_info.name,
@@ -25,5 +27,27 @@ class GeneralInfo(Base):
             'email': general_info.email,
             'phone': general_info.phone,
             'short_description': general_info.short_description
-        }
+        }), 200
+
+
+class Multimedia(Base):
+
+    __tablename__ = 'multimedia'
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String(128), nullable=False)
+    file_type = Column(String(32), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+    def multimedia_as_json(id):
+        multimedia = Multimedia.query.get(id)
         
+        if not multimedia:
+            return jsonify({'error': 'Multimedia not found'}), 404
+
+        return jsonify({
+            'id': id,
+            'filename': multimedia.filename,
+            'file_type': multimedia.file_type,
+            'created_at': multimedia.created_at
+        }), 200
