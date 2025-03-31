@@ -3,11 +3,16 @@
 {% block title %}Multimedia{% endblock title %}
 {% block content %}
 
-{% for multimedia in multimedia_files %}
-    <img src="{{ url_for('uploaded_file', filename = multimedia.filename ) }}" alt="Example">
-{% endfor %}
+    {% if multimedia_files %}
+        {% for multimedia in multimedia_files %}
+            <img src="{{ url_for('uploaded_file', filename = multimedia.filename ) }}" alt="{{multimedia.filename}}"> <br>
+            <a href="{{ url_for('delete_file', filename=multimedia.filename) }}">delete_file</a>
+        {% endfor %}
+    {% endif %}
 
-
+    {% if message %}
+        {{ message }}
+    {% endif %}
 
 <h2>Upload Multimedia</h2>
 

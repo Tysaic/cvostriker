@@ -77,29 +77,20 @@ def about_me():
         
         return redirect(url_for('about_me'))
 
-
-
-
 @app.route('/multimedia', methods=['GET', 'POST'])
 def multimedia():
+
     session = Session()
+    multimedia_files = session.query(Multimedia).all()
+
     if request.method == 'GET':
-        # Develop here the function to get the multimedia files from the database
-        # and show them in the page
-        multimedia_files = session.query(Multimedia).all()
         session.close()
-        if multimedia_files:
-            return render_template('multimedia.html', multimedia_files=multimedia_files)   
-    
-    if request.method == 'POST':
+        return render_template('multimedia.html', multimedia_files=multimedia_files)
 
-        if 'file' not in request.files:
-            return jsonify({'error': 'There are not file in the request'}), 400
-        
-        file = request.files['file']
-
-        if file and filter_file_multimedia(file.filename):
-
+    elif request.method == 'POST':
+       
+        if request.files['file'] and filter_file_multimedia(file.filename):
+            file = request.files['file']
             extension = file_extension(file.filename)
             filename = secure_filename(file.filename)
             new_name = str(uuid.uuid4())+'.'+extension
@@ -112,22 +103,46 @@ def multimedia():
             )
             
             session.add(multimedia)
-            session.commit()            
+            session.commit()
+            session.close()            
             file.save(file_path)
-            session.close()
+            return redirect(url_for('multimedia'))
+    
+    return render_template('multimedia.html', multimedia_files=multimedia_files)
 
-            return jsonify({'status': 'Success'}), 200
-        else:
-            return jsonify({'error': 'File not allowed'}), 400
 
-    return render_template('multimedia.html')   
+
+            #return jsonify({'status': 'Success'}), 200
+        #else:
+            #return jsonify({'error': 'File not allowed'}), 400
+    #session.close()
+
 
 @app.route('/media/multimedia/<filename>')
 def uploaded_file(filename):
     file = os.path.join(app.config['MEDIA_FOLDER'], filename)
     #return send_file(file)
+    # Evita ataques de directorio traversal
     return send_from_directory(app.config['MEDIA_FOLDER'], filename)
 
+@app.route('/multimedia/delete/<filename>')
+def delete_file(filename):
+
+    session = Session()
+    file_to_delete = session.query(Multimedia).filter_by(filename=filename).first()
+    absolute_path = os.path.join(app.config['MEDIA_FOLDER'], file_to_delete.filename)
+
+    if os.path.exists(absolute_path):
+        os.remove(absolute_path)
+
+    multimedia_files = session.query(Multimedia).all()
+    session.delete(file_to_delete)
+    session.commit()
+    session.close()
+
+    return redirect(url_for('multimedia'))
+    
+    
 
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
