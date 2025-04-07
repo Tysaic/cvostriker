@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from flask import jsonify
 
@@ -51,3 +51,35 @@ class Multimedia(Base):
             'file_type': multimedia.file_type,
             'created_at': multimedia.created_at
         }), 200
+
+class Experience(Base):
+
+    __tablename__ = 'experience'
+
+    id = Column(Integer, primary_key=True, index=True)
+    short_description = Column(String(256), nullable=False)
+    company = Column(String(32), nullable=False)
+    position = Column(String(32), nullable=False)
+    location = Column(String(32), nullable=False)
+    long_description = Column(Text, nullable=False)
+    aptitudes = Column(Text, nullable=False)
+    start_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=True)
+
+    def experience_as_json(id):
+        experience = Experience.query.get(id)
+
+        if not experience:
+            return jsonify({'error': 'Experience not found'}), 404
+        else:
+            return jsonify({
+                'id': id,
+                'short_description': experience.short_description,
+                'long_description': experience.long_description,
+                'company': experience.company,
+                'position': experience.position,
+                'location': experience.location,
+                'start_date': experience.start_date,
+                'end_date': experience.end_date,
+                'aptitudes': experience.aptitudes,
+            })

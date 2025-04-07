@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify, send_from_directory, send_file
-from models import GeneralInfo, Multimedia
+from models import GeneralInfo, Multimedia, Experience
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 import os
@@ -111,13 +111,6 @@ def multimedia():
     return render_template('multimedia.html', multimedia_files=multimedia_files)
 
 
-
-            #return jsonify({'status': 'Success'}), 200
-        #else:
-            #return jsonify({'error': 'File not allowed'}), 400
-    #session.close()
-
-
 @app.route('/media/multimedia/<filename>')
 def uploaded_file(filename):
     file = os.path.join(app.config['MEDIA_FOLDER'], filename)
@@ -146,8 +139,46 @@ def delete_file(filename):
 
 @app.route('/experience', methods=['GET', 'POST'])
 def experience():
-    return render_template('experience.html')
-    
+    session = Session()
+    experiences = session.query(Experience).all()
+    return render_template('experience.html', experiences=experiences)
+
+@app.route('/new_experience', methods=['POST'])
+def new_experience():
+    session = Session()
+    start_date = datetime.datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+    end_date = datetime.datetime.strptime(request.form['end_date'], '%Y-%m-%d') if request.form['end_date'] else None
+    new_experience = Experience(
+        short_description = request.form["short_description"],
+        long_description = request.form["long_description"],
+        company = request.form["company"],
+        position = request.form['position'],
+        location = request.form['location'],
+        aptitudes = request.form['aptitudes'],
+        start_date = start_date,
+        end_date = end_date
+    )
+    session.add(new_experience)
+    session.commit()
+    session.refresh(new_experience)
+    session.close()
+    return redirect(url_for('experience'))
+
+@app.route('/edit_experience/<int:id>', methods=['GET', 'POST'])
+def edit_experience(id):
+    # Set New view here and return to the main template
+    session = Session()
+    return "edit_experience.html"
+
+@app.route('/delete_experience/<int:id>', methods=['GET', 'POST'])
+def delete_experience(id):
+    session = Session()
+    experience = session.query(Experience).get(id)
+    session.delete(experience)
+    session.commit()
+    session.close()
+    return redirect(url_for('experience'))
+
 @app.route('/certificates', methods=['GET', 'POST'])
 def certificates():
     return render_template('certificates.html')
