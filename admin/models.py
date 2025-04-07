@@ -2,6 +2,7 @@ from database import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from flask import jsonify
+import datetime
 
 
 class GeneralInfo(Base):
@@ -16,8 +17,9 @@ class GeneralInfo(Base):
     phone = Column(String(32), nullable=True)
     short_description = Column(String(256), nullable=True)
 
-    def general_info_as_json(id):
-        general_info = GeneralInfo.query.get(id)
+    @staticmethod
+    def general_info_as_json(session, id: int):
+        general_info = session.query(GeneralInfo).get(id)
         return jsonify({
             'id' : id,
             'name': general_info.name,
@@ -30,6 +32,7 @@ class GeneralInfo(Base):
         }), 200
 
 
+
 class Multimedia(Base):
 
     __tablename__ = 'multimedia'
@@ -39,8 +42,9 @@ class Multimedia(Base):
     file_type = Column(String(32), nullable=False)
     created_at = Column(DateTime, nullable=False)
 
-    def multimedia_as_json(id):
-        multimedia = Multimedia.query.get(id)
+    @staticmethod
+    def multimedia_as_json(session, id: int):
+        multimedia = session.query(Multimedia).get(id)
         
         if not multimedia:
             return jsonify({'error': 'Multimedia not found'}), 404
@@ -51,6 +55,7 @@ class Multimedia(Base):
             'file_type': multimedia.file_type,
             'created_at': multimedia.created_at
         }), 200
+
 
 class Experience(Base):
 
@@ -66,8 +71,9 @@ class Experience(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=True)
 
-    def experience_as_json(id):
-        experience = Experience.query.get(id)
+    @staticmethod
+    def experience_as_json(session, id: int):
+        experience = session.query(Experience).get(id)
 
         if not experience:
             return jsonify({'error': 'Experience not found'}), 404
@@ -82,4 +88,31 @@ class Experience(Base):
                 'start_date': experience.start_date,
                 'end_date': experience.end_date,
                 'aptitudes': experience.aptitudes,
+            })
+
+class Certification(Base):
+
+    __tablename__ = 'certification'
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(128), nullable=False)
+    description = Column(Text, nullable=False)
+    filename = Column(String(64), nullable=False)
+    file_type = Column(String(8), nullable=False)
+    upload_at = Column(DateTime, nullable=False, default=datetime.datetime.now)
+
+    @staticmethod
+    def certification_as_json(session, id:int):
+        certification = session.query(Certification).get(id)
+
+        if not certification:
+            return jsonify({'error': 'Certification not found'}), 404
+        else:
+            return jsonify({
+                'id': certification.id,
+                'title': certification.title,
+                'description': certification.description,
+                'filename': certification.filename,
+                'file_type': certification.file_type,
+                'upload_at': certification.upload_at
             })

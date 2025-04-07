@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify, send_from_directory, send_file
-from models import GeneralInfo, Multimedia, Experience
+from models import GeneralInfo, Multimedia, Experience, Certification
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 import os
@@ -14,6 +14,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MEDIA_FOLDER'] = os.path.join(os.path.dirname(__file__), 'media', 'multimedia')
+app.config['CERTIFICATES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'media', 'certificates')
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm', 'mp3', 'wav'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -85,7 +86,7 @@ def multimedia():
 
     if request.method == 'GET':
         session.close()
-        return render_template('multimedia.html', multimedia_files=multimedia_files)
+        return render_template('multimedia/multimedia.html', multimedia_files=multimedia_files)
 
     elif request.method == 'POST':
        
@@ -107,8 +108,6 @@ def multimedia():
             session.close()            
             file.save(file_path)
             return redirect(url_for('multimedia'))
-    
-    return render_template('multimedia.html', multimedia_files=multimedia_files)
 
 
 @app.route('/media/multimedia/<filename>')
@@ -141,7 +140,7 @@ def delete_file(filename):
 def experience():
     session = Session()
     experiences = session.query(Experience).all()
-    return render_template('experience.html', experiences=experiences)
+    return render_template('experience/experience.html', experiences=experiences)
 
 @app.route('/new_experience', methods=['POST'])
 def new_experience():
@@ -168,7 +167,25 @@ def new_experience():
 def edit_experience(id):
     # Set New view here and return to the main template
     session = Session()
-    return "edit_experience.html"
+    experience = session.query(Experience).get(id)
+    if request.method == 'GET':
+        return render_template('experience/edit_experience.html', experience=experience)
+    
+    elif request.method == 'POST':
+
+        experience.short_description = request.form['short_description']
+        experience.long_description = request.form['long_description']
+        experience.company = request.form['company']
+        experience.position = request.form['position']
+        experience.location = request.form['location']
+        experience.aptitudes = request.form['aptitudes']
+        experience.start_data = datetime.datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+        experience.end_date = datetime.datetime.strptime(request.form['end_date'], '%Y-%m-%d') if request.form['end_date'] else None
+        session.commit()
+        session.close()
+        return redirect(url_for('experience'))
+
+    return Experience.experience_as_json(session, id)
 
 @app.route('/delete_experience/<int:id>', methods=['GET', 'POST'])
 def delete_experience(id):
@@ -181,7 +198,60 @@ def delete_experience(id):
 
 @app.route('/certificates', methods=['GET', 'POST'])
 def certificates():
-    return render_template('certificates.html')
+    session = Session()
+    certificates = session.query(Certification).all()
+    if request.method == 'GET':
+        return render_template('certificates/certificates.html', certificates=certificates)
+
+    elif request.method == 'POST':
+        file = request.files['file']
+        extension = file_extension(file.filename)
+        filename = secure_filename(file.filename)
+        new_name = str(uuid.uuid4()) + '.' + extension
+        file_path = os.path.join(app.config['CERTIFICATES_FOLDER'], new_name)
+        
+        new_certification = Certification(
+            title = request.form['title'],
+            description = request.form['description'],
+            filename = new_name,
+            file_type = extension,
+            upload_at = datetime.datetime.now(),
+        ) 
+        session.add(new_certification)
+        session.commit()
+        session.refresh(new_certification)
+        session.close()
+        file.save(file_path)
+        return redirect(url_for('certificates'))
+
+    return render_template('certificates/certificates.html')
+
+@app.route('/certificates/edit/<int:id>', methods=['GET', 'POST'])
+def edit_certification(id):
+    session = Session()
+    certification_to_edit = session.query(Certification).get(id)
+    if request.method == 'GET':
+        return render_template('certificates/edit_certificates.html', certification=certification_to_edit)
+    elif request.method == 'POST':
+        certification_to_edit.title = request.form['title']
+        certification_to_edit.description = request.form['description']
+        session.commit()
+        session.close()
+        return redirect(url_for('certificates'))
+
+@app.route('/certificates/delete/<int:id>', methods=['GET', 'POST'])
+def delete_certification(id):
+    session = Session()
+    certification_to_delete = session.query(Certification).filter_by(id=id).first()
+    # Delete the certification record from the database
+    absolute_path = os.path.join(app.config['CERTIFICATES_FOLDER'], certification_to_delete.filename)
+    if os.path.exists(absolute_path):
+        os.remove(absolute_path)
+    session.delete(certification_to_delete)
+    session.commit()
+    session.close()
+    
+    return redirect(url_for('certificates'))
 
 @app.route('/projects', methods=['GET', 'POST'])
 def projects():
@@ -239,6 +309,10 @@ def get_user():
 
 
 if __name__ == '__main__':
+    # Create the media folder if it doesn't exist
     if not os.path.exists(app.config['MEDIA_FOLDER']):
         os.makedirs(app.config['MEDIA_FOLDER'], mode=0o755, exist_ok=True)
+    # Create the certificates folder if it doesn't exist
+    if not os.path.exists(app.config['CERTIFICATES_FOLDER']):
+        os.makedirs(app.config['CERTIFICATES_FOLDER'], mode=0o755, exist_ok=True)
     app.run(port=5002, debug=True)
