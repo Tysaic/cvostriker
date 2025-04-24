@@ -301,13 +301,6 @@ def get_user():
     return information
 """
 
-# Configuracion
-## Gestion información personal
-## Password manager & OTP
-## API / Token
-
-
-
 if __name__ == '__main__':
     # Create the media folder if it doesn't exist
     if not os.path.exists(app.config['MEDIA_FOLDER']):

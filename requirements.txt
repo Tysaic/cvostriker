@@ -3,3 +3,4 @@ Flask-SQLAlchemy
 alembic
 Werkzeug
 SQLAlchemy
+flask-session
