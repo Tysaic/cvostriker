@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify, send_from_directory, send_file
-from models import GeneralInfo, Multimedia, Experience, Certification
+from models import GeneralInfo, Multimedia, Experience, Certification, Projects
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 import os
@@ -255,7 +255,36 @@ def delete_certification(id):
 
 @app.route('/projects', methods=['GET', 'POST'])
 def projects():
-    return render_template('projects.html')
+    session = Session()
+    projects = session.query(Projects).all()
+    if request.method == 'GET':
+        return render_template('projects/projects.html', projects=projects)
+    elif request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        init_date = datetime.datetime.strptime(request.form['init_date'], '%Y-%m-%d')
+        end_date = datetime.datetime.strptime(request.form['end_date'], '%Y-%m-%d') if request.form['end_date'] else None
+        aptitudes = request.form['aptitudes']
+        new_project = Projects(
+            title=title,
+            description=description,
+            init_date=init_date,
+            end_date=end_date,
+            aptitudes=aptitudes
+        )
+        session.add(new_project)
+        session.commit()
+    session.close()
+    return redirect(url_for('projects'))
+
+@app.route('/projects/edit/<int:id>', methods=['GET', 'POST'])
+def edit_projects(id):
+    session = Session()
+    project_to_edit = session.query(Projects).filter_by(id=id).first()
+
+@app.route('/projects/delete/<int:id>', methods=['GET', 'POST'])
+def delete_projects(id):
+    pass
 
 @app.route('/pdf_generator', methods=['GET', 'POST'])
 def pdf_generator():

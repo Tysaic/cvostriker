@@ -116,3 +116,31 @@ class Certification(Base):
                 'file_type': certification.file_type,
                 'upload_at': certification.upload_at
             })
+
+class Projects(Base):
+
+    __tablename__ = 'projects'
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(128), nullable=False)
+    description = Column(Text, nullable=False)
+    init_date = Column(DateTime, nullable=False)
+    end_date = Column(DateTime, nullable=True)
+    aptitudes = Column(Text, nullable=False)
+
+    @staticmethod
+    def projects_as_json(session, id:int):
+        projects = session.query(Projects).get(id)
+
+        if not projects:
+            return jsonify({'error': 'There are not projects existings'}), 404
+        
+        else:
+            return jsonify({
+                'id': projects.id,
+                'title': projects.title,
+                'description': projects.description,
+                'init_date': projects.init_date,
+                'end_date': projects.end_date,
+                'aptitudes': projects.aptitudes
+            })
