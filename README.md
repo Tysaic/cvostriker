@@ -10,15 +10,6 @@ The Curriculum Vitae Management System (CVMS) is a web-based application designe
 -- **Administrative Interface**: A secure admin page where you can update anad manage your CV details.
 - **Multi-Server Architecture**: The application is structured to run different components on separate servers for better organization and scalability.
 
-### Project Structure
-
-flask-Project/ 
-    ├── admin/ 
-        └── app.py  
-    ├── public/ 
-        └── app.py  
-        └── main.py
-
 ### How to Run
 
 1. **Run Servers**:

@@ -2,5 +2,65 @@
 
 {% block title %}Projects{% endblock title %}
 {% block content %}
-Projects
+
+    <h1>Projects</h1>
+    <table>
+        <thead>
+            <tr>
+                
+                <th>Title</th>
+                <th>Description</th>
+                <th>Init Date</th>
+                <th>End Date</th>
+                <th>Aptitudes</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for project in projects %}
+            <tr>
+                <td>{{project.title}}</td>
+                <td>{{project.description}}</td>
+                <td>{{project.init_date}}</td>
+                <td>
+                    {% if project.end_date %}
+                        {{project.end_date}}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{project.aptitudes}}</td>
+                <td><a href="{{ url_for('edit_project', id=project.id) }}">Edit Project</a></td>
+                <td><a href="{{ url_for('delete_project', id=project.id) }}">Delete Project</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h1>Upload New Projects</h1>
+    <form method="post" action="{{ url_for('projects')}}">
+        <div class="form-group">
+            <label for="title">Project title:</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" class="form-control" required>
+            </textarea>
+        </div>
+        <div class="form-group">
+            <label for="init_date">Start Date:</label>
+            <input type="date" id="init_date" name="init_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="aptitudes">Describe aptitudes and technologies:</label>
+            <input type="text", id="aptitudes" name="aptitudes" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
 {% endblock content %}

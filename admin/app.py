@@ -258,6 +258,7 @@ def projects():
     session = Session()
     projects = session.query(Projects).all()
     if request.method == 'GET':
+        session.close()
         return render_template('projects/projects.html', projects=projects)
     elif request.method == 'POST':
         title = request.form['title']
@@ -273,18 +274,36 @@ def projects():
             aptitudes=aptitudes
         )
         session.add(new_project)
+        #session.refresh(new_project)
         session.commit()
-    session.close()
+        session.close()
     return redirect(url_for('projects'))
 
 @app.route('/projects/edit/<int:id>', methods=['GET', 'POST'])
-def edit_projects(id):
+def edit_project(id):
     session = Session()
     project_to_edit = session.query(Projects).filter_by(id=id).first()
+    if request.method == 'GET':
+        session.close()
+        return render_template('projects/edit_projects.html', project=project_to_edit)
+    elif request.method == 'POST':
+        project_to_edit.title = request.form['title']
+        project_to_edit.description = request.form['description']
+        project_to_edit.aptitudes = request.form['aptitudes']
+        project_to_edit.init_date = datetime.datetime.strptime(request.form['init_date'], '%Y-%m-%d')
+        project_to_edit.end_date = datetime.datetime.strptime(request.form['end_date'], '%Y-%m-%d') if project_to_edit.end_date else None
+        session.commit()
+        session.close()
+        return redirect(url_for('projects'))
 
 @app.route('/projects/delete/<int:id>', methods=['GET', 'POST'])
-def delete_projects(id):
-    pass
+def delete_project(id):
+    session = Session()
+    project_to_delete = session.query(Projects).filter_by(id=id).first()
+    session.delete(project_to_delete)
+    session.commit()
+    session.close()
+    return redirect(url_for('projects'))
 
 @app.route('/pdf_generator', methods=['GET', 'POST'])
 def pdf_generator():

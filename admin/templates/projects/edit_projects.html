@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Projects{% endblock title %}
+{% block content %}
+
+    <h1>Editing Projects</h1>
+    <form method="post" action="{{ url_for('edit_project', id=project.id)}}">
+        <div class="form-group">
+            <label for="title">Project title:</label>
+            <input type="text" id="title" name="title" class="form-control" value="{{project.title}}" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" class="form-control" required>
+                {{project.description}}
+            </textarea>
+        </div>
+        <div class="form-group">
+            <label for="init_date">Start Date:</label>
+            <input type="date" id="init_date" name="init_date" class="form-control" value="{{project.start_date}}" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="date" id="end_date" name="end_date" class="form-control" value="{{project.end_date}}">
+        </div>
+        <div class="form-group">
+            <label for="aptitudes">Describe aptitudes and technologies:</label>
+            <input type="text", id="aptitudes" name="aptitudes" class="form-control" value="{{project.aptitudes}}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+{% endblock content %}
