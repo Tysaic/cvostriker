@@ -5,6 +5,7 @@ from models import GeneralInfo, Multimedia, Experience, Certification, Projects,
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 import os
 import uuid
 import datetime
@@ -38,9 +39,37 @@ def file_extension(filename):
 
 """-----------------------Login and Sessions--------------------------"""
 
+"""
+There are the login required decorator function to protect the routes that require authentication.
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in fsession:
+            flash('You need to log in first.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+put to everything that need to be protected
+like this:
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    ...
+"""
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in fsession:
+            flash('You need to log in first.')
+            print("User not logged in")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -59,6 +88,7 @@ def login():
     return render_template('login/login.html')
 
 @app.route('/logout', methods=['GET'])
+@login_required
 def logout():
     #print("BEFORE POP:", fsession.get('user_id'), fsession.get('username') )
     fsession.pop('user_id', None)
@@ -68,10 +98,12 @@ def logout():
 
 """-----------------------Functions--------------------------"""
 @app.route('/', methods=['GET'])
+@login_required
 def dashboard():
     return render_template('dashboard.html')
 
 @app.route('/aboutme', methods=['GET', 'POST'])
+@login_required
 def about_me():
     session = Session()
     general_info = session.query(GeneralInfo).get(1)
@@ -112,6 +144,7 @@ def about_me():
         return redirect(url_for('about_me'))
 
 @app.route('/multimedia', methods=['GET', 'POST'])
+@login_required
 def multimedia():
 
     session = Session()
@@ -144,6 +177,7 @@ def multimedia():
 
 
 @app.route('/media/multimedia/<filename>')
+@login_required
 def uploaded_file(filename):
     file = os.path.join(app.config['MEDIA_FOLDER'], filename)
     #return send_file(file)
@@ -151,6 +185,7 @@ def uploaded_file(filename):
     return send_from_directory(app.config['MEDIA_FOLDER'], filename)
 
 @app.route('/multimedia/delete/<filename>')
+@login_required
 def delete_file(filename):
 
     session = Session()
@@ -170,12 +205,14 @@ def delete_file(filename):
     
 
 @app.route('/experience', methods=['GET', 'POST'])
+@login_required
 def experience():
     session = Session()
     experiences = session.query(Experience).all()
     return render_template('experience/experience.html', experiences=experiences)
 
 @app.route('/new_experience', methods=['POST'])
+@login_required
 def new_experience():
     session = Session()
     start_date = datetime.datetime.strptime(request.form['start_date'], '%Y-%m-%d')
@@ -197,6 +234,7 @@ def new_experience():
     return redirect(url_for('experience'))
 
 @app.route('/edit_experience/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_experience(id):
     # Set New view here and return to the main template
     session = Session()
@@ -221,6 +259,7 @@ def edit_experience(id):
     return Experience.experience_as_json(session, id)
 
 @app.route('/delete_experience/<int:id>', methods=['GET', 'POST'])
+@login_required
 def delete_experience(id):
     session = Session()
     experience = session.query(Experience).get(id)
@@ -230,6 +269,7 @@ def delete_experience(id):
     return redirect(url_for('experience'))
 
 @app.route('/certificates', methods=['GET', 'POST'])
+@login_required
 def certificates():
     session = Session()
     certificates = session.query(Certification).all()
@@ -260,6 +300,7 @@ def certificates():
     return render_template('certificates/certificates.html')
 
 @app.route('/certificates/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_certification(id):
     session = Session()
     certification_to_edit = session.query(Certification).get(id)
@@ -273,6 +314,7 @@ def edit_certification(id):
         return redirect(url_for('certificates'))
 
 @app.route('/certificates/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
 def delete_certification(id):
     session = Session()
     certification_to_delete = session.query(Certification).filter_by(id=id).first()
@@ -287,6 +329,7 @@ def delete_certification(id):
     return redirect(url_for('certificates'))
 
 @app.route('/projects', methods=['GET', 'POST'])
+@login_required
 def projects():
     session = Session()
     projects = session.query(Projects).all()
@@ -312,6 +355,7 @@ def projects():
     return redirect(url_for('projects'))
 
 @app.route('/projects/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_project(id):
     session = Session()
     project_to_edit = session.query(Projects).filter_by(id=id).first()
@@ -329,6 +373,7 @@ def edit_project(id):
         return redirect(url_for('projects'))
 
 @app.route('/projects/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
 def delete_project(id):
     session = Session()
     project_to_delete = session.query(Projects).filter_by(id=id).first()
@@ -338,6 +383,7 @@ def delete_project(id):
     return redirect(url_for('projects'))
 
 @app.route('/pdf_generator', methods=['GET', 'POST'])
+@login_required
 def pdf_generator():
     return render_template('pdf_generator.html')
 
