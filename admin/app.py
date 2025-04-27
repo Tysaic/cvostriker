@@ -1,7 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, request, session, jsonify, send_from_directory, send_file
+from flask import Flask, render_template, redirect, url_for, request, jsonify, send_from_directory, send_file, flash
+from flask import session as fsession
+from flask_session import Session as FlaskSession
 from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import uuid
 import datetime
@@ -18,7 +21,8 @@ app.config['CERTIFICATES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'med
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm', 'mp3', 'wav'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
 app.config['SECRET_KEY'] = os.urandom(24)
-
+app.config['SESSION_TYPE'] = 'filesystem'
+FlaskSession(app)
 
 
 # Creating Database in case to be neccessary
@@ -30,8 +34,37 @@ def filter_file_multimedia(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def file_extension(filename):
-
     return filename.rsplit('.', 1)[1].lower()
+
+"""-----------------------Login and Sessions--------------------------"""
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        session = Session()
+        user_to_login = session.query(User).filter_by(username=username).first()
+        session.close()
+
+        if user_to_login and check_password_hash(user_to_login.password, password):
+            flash('Login Successfully here!')
+            fsession['user_id'] = str(user_to_login.id)
+            fsession['username'] = str(user_to_login.username)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid username or password')
+    
+    return render_template('login/login.html')
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    #print("BEFORE POP:", fsession.get('user_id'), fsession.get('username') )
+    fsession.pop('user_id', None)
+    fsession.pop('username', None)
+    fsession.clear()
+    return redirect(url_for('login'))
 
 """-----------------------Functions--------------------------"""
 @app.route('/', methods=['GET'])
@@ -313,7 +346,8 @@ def pdf_generator():
 @app.route('/create_new_user', methods=['GET'])
 def create_new_user():
     session = Session()
-    user_info = User(username='admin', password='admin')
+    hashed_password = generate_password_hash('admin', method='pbkdf2:sha256', salt_length=16)
+    user_info = User(username='admin', password=hashed_password)
     session.add(user_info)
     new_user = GeneralInfo(
         id = user_info.id,

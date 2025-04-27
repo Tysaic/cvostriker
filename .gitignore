@@ -5,3 +5,5 @@ __pycache__/
 __pycache__/*
 admin/__pycache__/
 admin/__pycache__/*
+flask_session/
+flask_session/*
