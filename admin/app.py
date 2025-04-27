@@ -314,7 +314,9 @@ def pdf_generator():
 def create_new_user():
     session = Session()
     user_info = User(username='admin', password='admin')
+    session.add(user_info)
     new_user = GeneralInfo(
+        id = user_info.id,
         user = user_info,
         name = 'John',
         coname = 'Doe',
@@ -328,31 +330,35 @@ def create_new_user():
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
+    print("ID:", user_info.id)
+    message = f"created user {user_info.username} with password: {user_info.password} with name: {user_info.general_info.name} and email: {user_info.general_info.email}"
     session.close()
-    
-    user = session.get(GeneralInfo, 1)
-    return 'User created successfully! ID: {}'.format(user.id)
+    return jsonify({'Status': 'Success', 'Message': message}), 200
 
 @app.route('/get_user', methods=['GET'])
 def get_user():
     session = Session()
     #user = session.query(GeneralInfo).filter_by(id=1).first()
-    user_info = session.query(User).get(1)
-    user = session.query(GeneralInfo).get(1)
-    information = {
-        'id': user.id,
-        'name': user.name,
-        'coname': user.coname,
-        'address': user.address,
-        'country': user.country,
-        'email': user.email,
-        'phone': user.phone,
-        'short_description': user.short_description,
-        'username': user_info.username,
-        'password': user_info.password
-    }
-    session.close()
-    return jsonify(information), 200
+    try:
+        user_info = session.query(User).get(1)
+        user = session.query(GeneralInfo).get(1)
+        information = {
+            'id': user.id,
+            'name': user.name,
+            'coname': user.coname,
+            'address': user.address,
+            'country': user.country,
+            'email': user.email,
+            'phone': user.phone,
+            'short_description': user.short_description,
+            'username': user_info.username,
+            'password': user_info.password
+        }
+        session.close()
+        return jsonify(information), 200
+    except Exception as e:
+        session.close()
+        return jsonify({'error': str(e), 'Message': 'Set /create_new_user to create new one'}), 500
 """
 """
 
