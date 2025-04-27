@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, jsonify, send_from_directory, send_file
-from models import GeneralInfo, Multimedia, Experience, Certification, Projects
+from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User
 from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 import os
@@ -274,7 +274,6 @@ def projects():
             aptitudes=aptitudes
         )
         session.add(new_project)
-        #session.refresh(new_project)
         session.commit()
         session.close()
     return redirect(url_for('projects'))
@@ -310,10 +309,13 @@ def pdf_generator():
     return render_template('pdf_generator.html')
 
 """
+"""
 @app.route('/create_new_user', methods=['GET'])
 def create_new_user():
     session = Session()
+    user_info = User(username='admin', password='admin')
     new_user = GeneralInfo(
+        user = user_info,
         name = 'John',
         coname = 'Doe',
         address = 'Street ###',
@@ -322,6 +324,7 @@ def create_new_user():
         phone = '123456789',
         short_description = 'Short description here!'
     )
+    session.add(user_info)
     session.add(new_user)
     session.commit()
     session.refresh(new_user)
@@ -334,6 +337,7 @@ def create_new_user():
 def get_user():
     session = Session()
     #user = session.query(GeneralInfo).filter_by(id=1).first()
+    user_info = session.query(User).get(1)
     user = session.query(GeneralInfo).get(1)
     information = {
         'id': user.id,
@@ -343,11 +347,15 @@ def get_user():
         'country': user.country,
         'email': user.email,
         'phone': user.phone,
-        'short_description': user.short_description
+        'short_description': user.short_description,
+        'username': user_info.username,
+        'password': user_info.password
     }
     session.close()
-    return information
+    return jsonify(information), 200
 """
+"""
+
 
 if __name__ == '__main__':
     # Create the media folder if it doesn't exist

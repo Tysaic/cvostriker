@@ -4,10 +4,25 @@ from sqlalchemy.orm import relationship
 from flask import jsonify
 import datetime
 
+"""
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(32), unique=True, nullable=False)
+    password = Column(String(128), nullable=False)
+
+    general_info = relationship("GeneralInfo", back_populates="user", uselist=False)
+
+
+GeneralInfo.user_id = Column(Integer, ForeignKey('user.id'), unique=True, nullable=False)
+GeneralInfo.user = relationship("User", back_populates="general_info")
+"""
+
+
 
 class GeneralInfo(Base):
     __tablename__ = 'general_info'
-
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(32), nullable=False)
     coname = Column(String(32), nullable=False)
@@ -16,6 +31,8 @@ class GeneralInfo(Base):
     email = Column(String(32), unique=True, nullable=False)
     phone = Column(String(32), nullable=True)
     short_description = Column(String(256), nullable=True)
+    user_id = Column(Integer, ForeignKey('user.id'), unique=True, nullable=False)
+    user = relationship("User", back_populates="general_info")
 
     @staticmethod
     def general_info_as_json(session, id: int):
@@ -144,3 +161,11 @@ class Projects(Base):
                 'end_date': projects.end_date,
                 'aptitudes': projects.aptitudes
             })
+
+class User(Base):
+
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(32), unique=True, nullable=False)
+    password = Column(String(128), nullable=False)
+    general_info = relationship("GeneralInfo", back_populates="user", uselist=False)
