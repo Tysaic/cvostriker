@@ -4,22 +4,6 @@ from sqlalchemy.orm import relationship
 from flask import jsonify
 import datetime
 
-"""
-class User(Base):
-    __tablename__ = 'user'
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(32), unique=True, nullable=False)
-    password = Column(String(128), nullable=False)
-
-    general_info = relationship("GeneralInfo", back_populates="user", uselist=False)
-
-
-GeneralInfo.user_id = Column(Integer, ForeignKey('user.id'), unique=True, nullable=False)
-GeneralInfo.user = relationship("User", back_populates="general_info")
-"""
-
-
 
 class GeneralInfo(Base):
     __tablename__ = 'general_info'
@@ -59,6 +43,10 @@ class Multimedia(Base):
     file_type = Column(String(32), nullable=False)
     created_at = Column(DateTime, nullable=False)
 
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship("User", back_populates='multimedias')
+    
+
     @staticmethod
     def multimedia_as_json(session, id: int):
         multimedia = session.query(Multimedia).get(id)
@@ -87,6 +75,10 @@ class Experience(Base):
     aptitudes = Column(Text, nullable=False)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=True)
+
+    
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship("User", back_populates='experiences')
 
     @staticmethod
     def experience_as_json(session, id: int):
@@ -118,6 +110,10 @@ class Certification(Base):
     file_type = Column(String(8), nullable=False)
     upload_at = Column(DateTime, nullable=False, default=datetime.datetime.now)
 
+    
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship("User", back_populates='certifications')
+
     @staticmethod
     def certification_as_json(session, id:int):
         certification = session.query(Certification).get(id)
@@ -145,6 +141,9 @@ class Projects(Base):
     end_date = Column(DateTime, nullable=True)
     aptitudes = Column(Text, nullable=False)
 
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship("User", back_populates='projects')
+
     @staticmethod
     def projects_as_json(session, id:int):
         projects = session.query(Projects).get(id)
@@ -168,4 +167,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(32), unique=True, nullable=False)
     password = Column(String(128), nullable=False)
-    general_info = relationship("GeneralInfo", back_populates="user", uselist=False)
+    general_info = relationship("GeneralInfo", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    multimedias = relationship("Multimedia", back_populates="user", uselist=False,cascade="all, delete-orphan")
+    experiences = relationship("Experience", back_populates="user", uselist=False,cascade="all, delete-orphan")
+    certifications = relationship("Certification", back_populates="user", uselist=False,cascade="all, delete-orphan")
+    projects = relationship("Projects", back_populates="user", uselist=False,cascade="all, delete-orphan")

@@ -38,25 +38,12 @@ def file_extension(filename):
     return filename.rsplit('.', 1)[1].lower()
 
 """-----------------------Login and Sessions--------------------------"""
+def get_session_user():
+    session = Session()
+    user = session.query(User).filter_by(id=fsession.get('user_id')).first()
+    session.close()
+    return user
 
-"""
-There are the login required decorator function to protect the routes that require authentication.
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in fsession:
-            flash('You need to log in first.')
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-put to everything that need to be protected
-like this:
-@app.route('/dashboard', methods=['GET'])
-@login_required
-def dashboard():
-    ...
-"""
 
 def login_required(f):
     @wraps(f)
@@ -148,8 +135,8 @@ def about_me():
 def multimedia():
 
     session = Session()
-    multimedia_files = session.query(Multimedia).all()
-
+    #multimedia_files = session.query(Multimedia).all()
+    multimedia_files = get_session_user().multimedias
     if request.method == 'GET':
         session.close()
         return render_template('multimedia/multimedia.html', multimedia_files=multimedia_files)
@@ -195,7 +182,7 @@ def delete_file(filename):
     if os.path.exists(absolute_path):
         os.remove(absolute_path)
 
-    multimedia_files = session.query(Multimedia).all()
+    multimedia_files = get_session_user().multimedias
     session.delete(file_to_delete)
     session.commit()
     session.close()
@@ -208,7 +195,7 @@ def delete_file(filename):
 @login_required
 def experience():
     session = Session()
-    experiences = session.query(Experience).all()
+    experiences = get_session_user().experiences
     return render_template('experience/experience.html', experiences=experiences)
 
 @app.route('/new_experience', methods=['POST'])
@@ -272,7 +259,7 @@ def delete_experience(id):
 @login_required
 def certificates():
     session = Session()
-    certificates = session.query(Certification).all()
+    certificates = get_session_user().certifications
     if request.method == 'GET':
         return render_template('certificates/certificates.html', certificates=certificates)
 
@@ -332,7 +319,7 @@ def delete_certification(id):
 @login_required
 def projects():
     session = Session()
-    projects = session.query(Projects).all()
+    projects = get_session_user().projects
     if request.method == 'GET':
         session.close()
         return render_template('projects/projects.html', projects=projects)
