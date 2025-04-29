@@ -4,3 +4,4 @@ alembic
 Werkzeug
 SQLAlchemy
 flask-session
+flask-wtf

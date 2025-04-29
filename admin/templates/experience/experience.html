@@ -2,22 +2,24 @@
 
 {% block title %}Experience{% endblock title %}
 {% block content %}
-    {% for experience in experiences%}
-        {% if experience %}
-            <div>
-                <a href="{{ url_for('delete_experience', id=experience.id ) }}">Remove</a>
-                <a href="{{ url_for('edit_experience', id=experience.id) }}">Edit</a>
-                <p>{{ experience.short_description }}</p>
-                <p>{{ experience.long_description }}</p>
-                <p>{{ experience.aptitudes }}</p>
-                <p>{{ experience.start_date }}</p>
-                <p>{{ experience.end_date }}</p>
-                <p>{{ experience.company_name }}</p>
-                <p>{{ experience.position }}</p>
-                <p>{{ experience.location }}</p>
-            </div>
-        {% endif%}
-    {% endfor %}
+    {% if experiences %}
+        {% for experience in experiences %}
+            {% if experience %}
+                <div>
+                    <a href="{{ url_for('delete_experience', id=experience.id ) }}">Remove</a>
+                    <a href="{{ url_for('edit_experience', id=experience.id) }}">Edit</a>
+                    <p>{{ experience.short_description }}</p>
+                    <p>{{ experience.long_description }}</p>
+                    <p>{{ experience.aptitudes }}</p>
+                    <p>{{ experience.start_date }}</p>
+                    <p>{{ experience.end_date }}</p>
+                    <p>{{ experience.company_name }}</p>
+                    <p>{{ experience.position }}</p>
+                    <p>{{ experience.location }}</p>
+                </div>
+            {% endif%}
+        {% endfor %}
+    {% endif %}
 
     <h2>Create new experiences</h2>
     <form action="{{ url_for('new_experience') }}" method="POST">

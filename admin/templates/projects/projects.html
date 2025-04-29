@@ -16,24 +16,25 @@
             </tr>
         </thead>
         <tbody>
-
-            {% for project in projects %}
-            <tr>
-                <td>{{project.title}}</td>
-                <td>{{project.description}}</td>
-                <td>{{project.init_date}}</td>
-                <td>
-                    {% if project.end_date %}
-                        {{project.end_date}}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{project.aptitudes}}</td>
-                <td><a href="{{ url_for('edit_project', id=project.id) }}">Edit Project</a></td>
-                <td><a href="{{ url_for('delete_project', id=project.id) }}">Delete Project</a></td>
-            </tr>
-            {% endfor %}
+            {% if projects %}
+                {% for project in projects %}
+                <tr>
+                    <td>{{project.title}}</td>
+                    <td>{{project.description}}</td>
+                    <td>{{project.init_date}}</td>
+                    <td>
+                        {% if project.end_date %}
+                            {{project.end_date}}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{project.aptitudes}}</td>
+                    <td><a href="{{ url_for('edit_project', id=project.id) }}">Edit Project</a></td>
+                    <td><a href="{{ url_for('delete_project', id=project.id) }}">Delete Project</a></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 

@@ -18,21 +18,23 @@
             </tr>
         </thead>
         <tbody>
-            {% for certificate in certificates %}
-            <tr>
-                <td>{{ certificate.title }}</td>
-                <td>{{ certificate.description }}</td>
-                <td>{{ certificate.filename }}</td>
-                <td>{{ certificate.file_type }}</td>
-                <td>{{ certificate.uploaded_date }}</td>
-                {% if certificate.file_type == 'pdf' %}
-                    <h2>PDF Preview</h2>
-                    <iframe src="" frameborder="0"></iframe>
-                {% endif %}
-                <a href="{{ url_for('edit_certification', id=certificate.id) }}">Edit</a>
-                <a href="{{ url_for('delete_certification', id=certificate.id) }}">Remove</a>
-            </tr>
-            {% endfor %}
+            {% if certificates %}
+                {% for certificate in certificates %}
+                <tr>
+                    <td>{{ certificate.title }}</td>
+                    <td>{{ certificate.description }}</td>
+                    <td>{{ certificate.filename }}</td>
+                    <td>{{ certificate.file_type }}</td>
+                    <td>{{ certificate.uploaded_date }}</td>
+                    {% if certificate.file_type == 'pdf' %}
+                        <h2>PDF Preview</h2>
+                        <iframe src="" frameborder="0"></iframe>
+                    {% endif %}
+                    <a href="{{ url_for('edit_certification', id=certificate.id) }}">Edit</a>
+                    <a href="{{ url_for('delete_certification', id=certificate.id) }}">Remove</a>
+                </tr>
+                {% endfor %}
+            {% endif%}
         </tbody>
     </table>
 

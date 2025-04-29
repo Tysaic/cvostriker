@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, send_from_directory, send_file, flash
 from flask import session as fsession
+from flask_wtf.csrf import CSRFProtect
 from flask_session import Session as FlaskSession
 from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User
 from database import DATABASE_URL, engine, Session, get_session, Base
@@ -24,6 +25,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
 app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SESSION_TYPE'] = 'filesystem'
 FlaskSession(app)
+csrf = CSRFProtect(app)
 
 
 # Creating Database in case to be neccessary
@@ -37,13 +39,12 @@ def filter_file_multimedia(filename):
 def file_extension(filename):
     return filename.rsplit('.', 1)[1].lower()
 
-"""-----------------------Login and Sessions--------------------------"""
-def get_session_user():
-    session = Session()
+def get_session_user(session):
+    #session = Session()
     user = session.query(User).filter_by(id=fsession.get('user_id')).first()
-    session.close()
+    print("USER:", user)
+    #session.close()
     return user
-
 
 def login_required(f):
     @wraps(f)
@@ -54,6 +55,8 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+"""-----------------------Login and Sessions--------------------------"""
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,6 +74,9 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password')
+    
+    if request.method == 'GET' and fsession.get('user_id'):
+        return redirect(url_for('dashboard'))
     
     return render_template('login/login.html')
 
@@ -136,7 +142,7 @@ def multimedia():
 
     session = Session()
     #multimedia_files = session.query(Multimedia).all()
-    multimedia_files = get_session_user().multimedias
+    multimedia_files = get_session_user(session).multimedias
     if request.method == 'GET':
         session.close()
         return render_template('multimedia/multimedia.html', multimedia_files=multimedia_files)
@@ -182,7 +188,7 @@ def delete_file(filename):
     if os.path.exists(absolute_path):
         os.remove(absolute_path)
 
-    multimedia_files = get_session_user().multimedias
+    multimedia_files = get_session_user(session).multimedias
     session.delete(file_to_delete)
     session.commit()
     session.close()
@@ -195,7 +201,8 @@ def delete_file(filename):
 @login_required
 def experience():
     session = Session()
-    experiences = get_session_user().experiences
+    experiences = get_session_user(session).experiences
+    print("EXPERIENCES:", experiences)
     return render_template('experience/experience.html', experiences=experiences)
 
 @app.route('/new_experience', methods=['POST'])
@@ -259,7 +266,7 @@ def delete_experience(id):
 @login_required
 def certificates():
     session = Session()
-    certificates = get_session_user().certifications
+    certificates = get_session_user(session).certifications
     if request.method == 'GET':
         return render_template('certificates/certificates.html', certificates=certificates)
 
@@ -319,7 +326,7 @@ def delete_certification(id):
 @login_required
 def projects():
     session = Session()
-    projects = get_session_user().projects
+    projects = get_session_user(session).projects
     if request.method == 'GET':
         session.close()
         return render_template('projects/projects.html', projects=projects)
