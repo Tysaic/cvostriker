@@ -167,8 +167,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(32), unique=True, nullable=False)
     password = Column(String(128), nullable=False)
+    # uselist=False means that this relationship is one-to-one and get the object directly e.g: user.general_info
     general_info = relationship("GeneralInfo", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    multimedias = relationship("Multimedia", back_populates="user", uselist=False,cascade="all, delete-orphan")
-    experiences = relationship("Experience", back_populates="user", uselist=False,cascade="all, delete-orphan")
-    certifications = relationship("Certification", back_populates="user", uselist=False,cascade="all, delete-orphan")
-    projects = relationship("Projects", back_populates="user", uselist=False,cascade="all, delete-orphan")
+
+    # uselist=True means that this relationship is one-to-many and get the list of objects e.g: user.multimedias
+    multimedias = relationship("Multimedia", back_populates="user", cascade="all, delete-orphan")
+    experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
+    certifications = relationship("Certification", back_populates="user", cascade="all, delete-orphan")
+    projects = relationship("Projects", back_populates="user", cascade="all, delete-orphan")

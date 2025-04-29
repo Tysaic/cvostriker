@@ -3,21 +3,21 @@
 
 {% block content %}
     <form action="{{ url_for('edit_experience', id = experience.id)}}" method="POST">
-
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
         <label for="short_description">Short Description:</label>
-        <input type="text" id="short_description" name="short_description" value="{{ experience.short_description }}"><br>
+        <input type="text" id="short_description" name="short_description" value="{{ experience.short_description }}" required><br>
 
         <label for="long_description">Long Description:</label>
-        <textarea type="text" id="long_description" name="long_description" value="{{ experience.long_description }}"></textarea><br>
+        <textarea type="text" id="long_description" name="long_description" value="{{ experience.long_description }}" required></textarea><br>
 
         <label for="company">Company:</label>
-        <input type="text" id="company" name="company" value="{{ experience.company }}"><br>
+        <input type="text" id="company" name="company" value="{{ experience.company }}" required><br>
 
         <label for="position">Position:</label>
-        <input type="text" id="position" name="position" value="{{ experience.position }}"><br>
+        <input type="text" id="position" name="position" value="{{ experience.position }}" required><br>
 
         <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" value="{{ experience.start_date }}"><br>
+        <input type="date" id="start_date" name="start_date" value="{{ experience.start_date }}" required><br>
 
         <label for="end_date">End Date:</label>
         <input type="date" id="end_date" name="end_date" value="{{ experience.end_date }}"><br>

@@ -40,6 +40,7 @@
 
     <h1>Upload New Projects</h1>
     <form method="post" action="{{ url_for('projects')}}">
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
         <div class="form-group">
             <label for="title">Project title:</label>
             <input type="text" id="title" name="title" class="form-control" required>
@@ -51,7 +52,7 @@
         </div>
         <div class="form-group">
             <label for="init_date">Start Date:</label>
-            <input type="date" id="init_date" name="init_date" class="form-control" required>
+            <input type="date" id="init_date" name="init_date" class="form-control" value="{{ current_date }}" required>
         </div>
         <div class="form-group">
             <label for="end_date">End Date:</label>

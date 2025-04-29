@@ -5,6 +5,7 @@
 
     <h1>Editing Projects</h1>
     <form method="post" action="{{ url_for('edit_project', id=project.id)}}">
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
         <div class="form-group">
             <label for="title">Project title:</label>
             <input type="text" id="title" name="title" class="form-control" value="{{project.title}}" required>

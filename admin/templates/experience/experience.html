@@ -23,7 +23,7 @@
 
     <h2>Create new experiences</h2>
     <form action="{{ url_for('new_experience') }}" method="POST">
-
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
         <label for="short_description">Short Description:</label>
         <input type="text" id="short_description" name="short_description"><br>
 
@@ -34,7 +34,7 @@
         <input type="text" id="aptitudes" name="aptitudes"><br>
 
         <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date"><br>
+        <input type="date" id="start_date" name="start_date" value="{{ current_date }}"><br>
 
         <label for="end_date">End Date:</label>
         <input type="date" id="end_date" name="end_date"><br>

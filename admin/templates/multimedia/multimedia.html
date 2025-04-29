@@ -17,6 +17,7 @@
 <h2>Upload Multimedia</h2>
 
 <form action="{{ url_for('multimedia') }}" method="POST" enctype="multipart/form-data">
+    <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
     <label for="file">Select File:</label>
     <input type="file" id="file" name="file" accept="image/*,video/*" required><br>
     <button type="submit">Upload</button>

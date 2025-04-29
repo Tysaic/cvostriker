@@ -7,6 +7,7 @@ from database import DATABASE_URL, engine, Session, get_session, Base
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from datetime import date
 import os
 import uuid
 import datetime
@@ -144,13 +145,16 @@ def multimedia():
     #multimedia_files = session.query(Multimedia).all()
     multimedia_files = get_session_user(session).multimedias
     if request.method == 'GET':
+        #for m in multimedia_files:
+        #    print("BULLET:", m, type(m))
         session.close()
         return render_template('multimedia/multimedia.html', multimedia_files=multimedia_files)
 
     elif request.method == 'POST':
-       
+
+        file = request.files['file']
         if request.files['file'] and filter_file_multimedia(file.filename):
-            file = request.files['file']
+            
             extension = file_extension(file.filename)
             filename = secure_filename(file.filename)
             new_name = str(uuid.uuid4())+'.'+extension
@@ -159,7 +163,8 @@ def multimedia():
             multimedia = Multimedia(
                 filename=new_name,
                 file_type=extension,
-                created_at=datetime.datetime.now()
+                created_at=datetime.datetime.now(),
+                user = get_session_user(session)
             )
             
             session.add(multimedia)
@@ -202,8 +207,7 @@ def delete_file(filename):
 def experience():
     session = Session()
     experiences = get_session_user(session).experiences
-    print("EXPERIENCES:", experiences)
-    return render_template('experience/experience.html', experiences=experiences)
+    return render_template('experience/experience.html', experiences=experiences, current_date=date.today())
 
 @app.route('/new_experience', methods=['POST'])
 @login_required
@@ -219,7 +223,8 @@ def new_experience():
         location = request.form['location'],
         aptitudes = request.form['aptitudes'],
         start_date = start_date,
-        end_date = end_date
+        end_date = end_date,
+        user = get_session_user(session)
     )
     session.add(new_experience)
     session.commit()
@@ -283,6 +288,7 @@ def certificates():
             filename = new_name,
             file_type = extension,
             upload_at = datetime.datetime.now(),
+            user = get_session_user(session)
         ) 
         session.add(new_certification)
         session.commit()
@@ -329,7 +335,7 @@ def projects():
     projects = get_session_user(session).projects
     if request.method == 'GET':
         session.close()
-        return render_template('projects/projects.html', projects=projects)
+        return render_template('projects/projects.html', projects=projects, current_date=date.today())
     elif request.method == 'POST':
         title = request.form['title']
         description = request.form['description']
@@ -341,7 +347,8 @@ def projects():
             description=description,
             init_date=init_date,
             end_date=end_date,
-            aptitudes=aptitudes
+            aptitudes=aptitudes,
+            user = get_session_user(session)
         )
         session.add(new_project)
         session.commit()
