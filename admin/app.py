@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import date
+from itsdangerous import URLSafeTimedSerializer
 import os
 import uuid
 import datetime
@@ -24,6 +25,7 @@ app.config['CERTIFICATES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'med
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm', 'mp3', 'wav'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
 app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SECURITY_PASSWORD_SALT'] = 'my_precious_two'
 app.config['SESSION_TYPE'] = 'filesystem'
 FlaskSession(app)
 csrf = CSRFProtect(app)
@@ -57,10 +59,26 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+def verify_reset_token(token):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)
+        return (True, email)
+    except Exception as e:
+        print("Error:", e)
+        return (False, None)
+    
+
 """-----------------------Login and Sessions--------------------------"""
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    token = generate_reset_token('fake@mail.com')
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -75,6 +93,7 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password')
+            return render_template('login/login.html', message='Invalid User/Password!')
     
     if request.method == 'GET' and fsession.get('user_id'):
         return redirect(url_for('dashboard'))
@@ -89,6 +108,52 @@ def logout():
     fsession.pop('username', None)
     fsession.clear()
     return redirect(url_for('login'))
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+
+    if request.method == 'POST':
+        email = request.form['email']
+        session = Session()
+        user_email = session.query(GeneralInfo).filter_by(email=email).first().email
+        session.close()
+        if email == user_email:
+            token = generate_reset_token(email)
+            print("TOKEN URL:", "http://localhost:5002/password_recovery/"+token)
+            # Send email here with the token to url/password_recovery/<token>
+            # For example, you can use Flask-Mail or any other email service
+            return redirect(url_for('login'))
+        else:
+            print('Invalid email address')
+            return redirect(url_for('reset_password'))
+
+    return render_template('login/reset_password.html')
+
+@app.route('/password_recovery/<token>', methods=['GET', 'POST'])
+def recovery_password(token):
+    validation, email = verify_reset_token(token)
+    if request.method == 'POST':
+        if validation:
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+            if new_password == confirm_password:
+                session = Session()
+                user_to_change_password = session.query(GeneralInfo).filter_by(email=email).first()
+                user_to_change_password.user.password = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=16)
+                session.commit()
+                session.close()
+                return redirect(url_for('login'))
+            else:
+                print("Password do not match")
+                return redirect(url_for('recovery_password', token=token))
+
+        return render_template('login/login.html', message="Token were invalid or don't match your password, please try again recovery!")
+    else:
+        return render_template('login/recovery_password.html', token=token)
+
+
+
+
 
 """-----------------------Functions--------------------------"""
 @app.route('/', methods=['GET'])

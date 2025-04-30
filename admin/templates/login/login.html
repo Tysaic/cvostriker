@@ -6,6 +6,9 @@
     <title>Login Page</title>
 </head>
 <body>
+    {% if message %}
+        <p>{{message}}</p>
+    {% endif %}
     <form action="/login" method="POST">
         <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
         <h1>Login here!</h1>
@@ -14,9 +17,10 @@
 
         <label for="password">Password</label><br>
         <input type="password" id="password" name="password" required><br><br>
-
+        <a href="{{url_for('reset_password')}}">Are you forget your password?</a><br><br>
         <input type="submit" value="Start Session">
         
     </form>
+
 </body>
 </html>
