@@ -103,7 +103,6 @@ def login():
 @app.route('/logout', methods=['GET'])
 @login_required
 def logout():
-    #print("BEFORE POP:", fsession.get('user_id'), fsession.get('username') )
     fsession.pop('user_id', None)
     fsession.pop('username', None)
     fsession.clear()
