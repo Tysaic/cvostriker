@@ -161,6 +161,25 @@ class Projects(Base):
                 'aptitudes': projects.aptitudes
             })
 
+class Configuration(Base):
+
+    __tablename__ = 'configuration'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    theme = Column(String(32), nullable=False, default='light')
+    language = Column(String(32), nullable=False, default='en')
+    font_size = Column(String(32), nullable=False, default='medium')
+    OTP = Column(String(32), nullable=True)
+    # OTP is a one-time password for two-factor authentication
+
+    user_id = Column(Integer, ForeignKey('user.id'), unique=True, nullable=False)
+    user = relationship("User", back_populates="configuration")
+    # Allowed values for fields
+    THEMES = ['light', 'dark', 'blue']
+    LANGUAGES = ['en', 'es', 'fr', 'de']
+    FONT_SIZES = ['small', 'medium', 'large']
+
+
 class User(Base):
 
     __tablename__ = 'user'
@@ -169,6 +188,7 @@ class User(Base):
     password = Column(String(128), nullable=False)
     # uselist=False means that this relationship is one-to-one and get the object directly e.g: user.general_info
     general_info = relationship("GeneralInfo", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    configuration = relationship("Configuration", back_populates="user", uselist=False, cascade="all, delete-orphan")
 
     # uselist=True means that this relationship is one-to-many and get the list of objects e.g: user.multimedias
     multimedias = relationship("Multimedia", back_populates="user", cascade="all, delete-orphan")
