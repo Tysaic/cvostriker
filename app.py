@@ -556,4 +556,4 @@ if __name__ == '__main__':
     # Create the certificates folder if it doesn't exist
     if not os.path.exists(app.config['CERTIFICATES_FOLDER']):
         os.makedirs(app.config['CERTIFICATES_FOLDER'], mode=0o755, exist_ok=True)
-    app.run(port=5002, debug=True)
+    app.run(port=5000, debug=True)
