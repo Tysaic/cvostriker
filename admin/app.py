@@ -9,10 +9,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import date
 from itsdangerous import URLSafeTimedSerializer
+from io import BytesIO
 import os
 import uuid
 import datetime
-
+import pyotp
+import qrcode
 
 """-----------------------Declaration--------------------------"""
 # Flask app
@@ -32,6 +34,7 @@ csrf = CSRFProtect(app)
 
 
 # Creating Database in case to be neccessary
+"""----------------------------Basic Tools functions ----------------------------"""
 
 Base.metadata.create_all(bind=engine)
 
@@ -43,10 +46,7 @@ def file_extension(filename):
     return filename.rsplit('.', 1)[1].lower()
 
 def get_session_user(session):
-    #session = Session()
     user = session.query(User).filter_by(id=fsession.get('user_id')).first()
-    print("USER:", user)
-    #session.close()
     return user
 
 def login_required(f):
@@ -154,7 +154,7 @@ def recovery_password(token):
 
 
 
-"""-----------------------Functions--------------------------"""
+"""-----------------------URLS--------------------------"""
 @app.route('/', methods=['GET'])
 @login_required
 def dashboard():
@@ -452,8 +452,36 @@ def delete_project(id):
 def pdf_generator():
     return render_template('pdf_generator.html')
 
-"""
-"""
+
+
+"""------------------------Config Site------------------------"""
+@app.route('/configuration/otp', methods=['GET', 'POST'])
+def configuration_otp():
+    session = Session()
+    user = get_session_user(session)
+
+    if request.method == 'GET':
+        session.close()
+        return render_template('configuration/otp.html', user=user)
+    
+    elif request.method == 'POST':
+        print("AM CALLING")
+        user.OTP = pyotp.random_base32()
+        session.commit()
+        otp_uri = pyotp.totp.TOTP(user.OTP).provisioning_uri(
+            name=user.username, 
+            issuer_name='CVOStriker OTP'
+        )
+        qr = qrcode.make(otp_uri)
+        buffer = BytesIO()
+        qr.save(buffer, format='PNG')
+        buffer.seek(0)
+        session.close()
+        return send_file(buffer, mimetype='image/png')
+
+
+"""------------------------Creation User------------------------"""
+
 @app.route('/create_new_user', methods=['GET'])
 def create_new_user():
     session = Session()
@@ -504,8 +532,6 @@ def get_user():
     except Exception as e:
         session.close()
         return jsonify({'error': str(e), 'Message': 'Set /create_new_user to create new one'}), 500
-"""
-"""
 
 
 if __name__ == '__main__':

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}OTP settings{% endblock title %}
+{% block content %}
+
+    {% if user.OTP %}
+    {% else %}
+        <form action="{{ url_for('configuration_otp') }}" method="POST">
+            <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
+            <label for="enable">Enable:</label>
+            <button type="submit">Enable</button>
+        </form>
+    {% endif %}
+
+
+{% endblock content %}
