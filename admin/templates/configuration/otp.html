@@ -3,7 +3,14 @@
 {% block title %}OTP settings{% endblock title %}
 {% block content %}
 
-    {% if user.OTP %}
+    {% if qr_base64 %}
+        <img src="data:image/png;base64, {{qr_base64}}" alt="QR Code">
+        <form action="{{ url_for('configuration_otp_delete') }}" method="POST">
+            <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
+            <label for="delete">Delete</label>
+            <button type="submit">Delete</button>
+        </form>
+
     {% else %}
         <form action="{{ url_for('configuration_otp') }}" method="POST">
             <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 

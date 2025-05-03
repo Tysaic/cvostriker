@@ -15,6 +15,7 @@ import uuid
 import datetime
 import pyotp
 import qrcode
+import base64
 
 """-----------------------Declaration--------------------------"""
 # Flask app
@@ -462,12 +463,13 @@ def configuration_otp():
 
     if request.method == 'GET':
         session.close()
-        return render_template('configuration/otp.html', user=user)
+        return render_template('configuration/otp.html', user=user, qr_base64=None)
     
     elif request.method == 'POST':
-        print("AM CALLING")
+
         user.OTP = pyotp.random_base32()
         session.commit()
+
         otp_uri = pyotp.totp.TOTP(user.OTP).provisioning_uri(
             name=user.username, 
             issuer_name='CVOStriker OTP'
@@ -477,8 +479,21 @@ def configuration_otp():
         qr.save(buffer, format='PNG')
         buffer.seek(0)
         session.close()
-        return send_file(buffer, mimetype='image/png')
 
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return render_template('configuration/otp.html', user=user, qr_base64=qr_base64)
+        #return send_file(buffer, mimetype='image/png')
+
+@app.route('/configuration/otp/delete', methods=['GET', 'POST'])
+def configuration_otp_delete():
+    session = Session()
+    user = get_session_user(session)
+
+    if request.method == 'POST':
+        user.OTP = None
+        session.commit()
+        session.close()
+        return redirect(url_for('configuration_otp'))
 
 """------------------------Creation User------------------------"""
 
