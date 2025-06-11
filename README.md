@@ -25,9 +25,10 @@ python run_servers.py
 
 ### Requeriments
 
-* Python 3
+* Python 3.13
 * Flask
 * SQLAlchemy
+* Tailwind 
 
 ### Instalation
 

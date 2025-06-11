@@ -1,9 +1,7 @@
-admin/media/*
+media/*
 database.db
 notes.md
 __pycache__/
 __pycache__/*
-admin/__pycache__/
-admin/__pycache__/*
 flask_session/
 flask_session/*

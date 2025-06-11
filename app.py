@@ -456,7 +456,17 @@ def pdf_generator():
 
 
 """------------------------Config Site------------------------"""
+@app.route('/configuration', methods=['GET'])
+@login_required
+def configuration_dashboard():
+    session = Session()
+    user = get_session_user(session)
+    session.close()
+    return render_template('configuration/configuration.html', user=user)
+
+
 @app.route('/configuration/otp', methods=['GET', 'POST'])
+@login_required
 def configuration_otp():
     session = Session()
     user = get_session_user(session)
@@ -485,6 +495,7 @@ def configuration_otp():
         #return send_file(buffer, mimetype='image/png')
 
 @app.route('/configuration/otp/delete', methods=['GET', 'POST'])
+@login_required
 def configuration_otp_delete():
     session = Session()
     user = get_session_user(session)

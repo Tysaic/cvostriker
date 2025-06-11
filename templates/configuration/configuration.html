@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuration Dashboard{% endblock title %}
+
+{% block content %}
+
+    <h1>Configuration Dashboard</h1>
+
+    <p>Manage your CVOStriker configuration settings.</p>
+
+    <ul>
+        <li><a href="{{ url_for('configuration_otp') }}">OTP Settings</a></li>
+        <li><a href="">Email Settings</a></li>
+        <li><a href="">Password Settings</a></li>
+        <li><a href="">API Settings</a></li>
+    </ul>
+
+{% endblock content %}

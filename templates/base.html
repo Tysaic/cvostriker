@@ -4,35 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %} - CVOStriker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.min.css') }}">
 </head>
 <body>
-    <!--If user is authenticated-->
-    <nav>
-        <li>
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-        </li>
-        <li>
-            <a href="{{ url_for('about_me') }}">About Me</a>
-        </li>
-        <li>
-            <a href="{{ url_for('multimedia') }}">Multimedia & Images</a>
-        </li>
-        <li>
-            <a href="{{ url_for('experience') }}">Experience</a>
-        </li>
-        <li>
-            <a href="{{ url_for('certificates') }}">Certificates</a>
-        </li>
-        <li>
-            <a href="{{ url_for('projects') }}">Projects</a>
-        </li>
-        <li>
-            <a href="{{ url_for('pdf_generator') }}">PDF Generator</a>
-        </li>
-        <li>
-            <a href="{{ url_for('logout') }}">Logout</a>
-        </li>
-    </nav>
+
+<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+  <div id="navbarMain" class="navbar-menu">
+    <div class="navbar-start">
+      <a href="{{ url_for('dashboard') }}" class="navbar-item">Dashboard</a>
+      <a href="{{ url_for('about_me') }}" class="navbar-item">About Me</a>
+      <a href="{{ url_for('multimedia') }}" class="navbar-item">Multimedia</a>
+      <a href="{{ url_for('experience') }}" class="navbar-item">Experience</a>
+      <a href="{{ url_for('certificates') }}" class="navbar-item">Certificates</a>
+      <a href="{{ url_for('projects') }}" class="navbar-item">Projects</a>
+      <a href="{{ url_for('pdf_generator') }}" class="navbar-item">PDF Generator</a>
+      <a class="navbar-item" href="{{ url_for('configuration_dashboard') }}">Configuration</a>
+    </div>
+    <div class="navbar-end">
+      <div class="navbar-item">
+        <div class="buttons">
+          <a href="{{ url_for('logout') }}" class="button is-light">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
     {% block content %}
         <h1>Welcome to the CVOStriker Admin Dashboard</h1>
         <p>This is the admin dashboard where you can manage your CVOStriker application.</p>
