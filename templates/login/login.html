@@ -1,28 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% extends 'login/main.html' %}
+
+{% block title %}
     <title>Login Page</title>
-</head>
-<body>
-    {% if message %}
-        <p>{{message}}</p>
-    {% endif %}
-    <form action="/login" method="POST">
-        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
-        <h1>Login here!</h1>
-        <label for="username">User:</label><br>
-        <input type="text" id="username" name="username" required><br><br>
+{% endblock title %}
 
-        <label for="password">Password</label><br>
-        <input type="password" id="password" name="password" required><br><br>
-        <label for="otp">otp (if enable)</label>
-        <input type="text" id="otp" name="otp"> <br><br>
-        <a href="{{url_for('reset_password')}}">Are you forget your password?</a><br><br>
-        <input type="submit" value="Start Session">
-        
-    </form>
+{% block content %}
+    <section class="hero is-success is-fullheight">
+        <div class="hero-body">
+            <div class="container has-text-centered">
+                <div class="column is-4 is-offset-4">
+                    {% if message %}
+                        <p>{{message}}</p>
+                    {% endif %}
+                    <h3 class="title has-text-black">Login</h3>
+                    <hr class="login-hr">
+                    <p class="subtitle has-text-black">Please login to proceed.</p>
+                    <div class="box">
+                        <figure class="avatar">
+                            <img src="https://via.placeholder.com/150">
+                        </figure>
+                        <form action="/login" method="POST">
+                            <div class="field">
+                                <div class="control">
+                                    <input class="input is-large" placeholder="Your Email or Username!" autofocus="" type="text" id="username" name="username" required><br><br>
+                                </div>
+                            </div>
 
-</body>
-</html>
+                            <div class="field">
+                                <div class="control">
+                                    <input class="input is-large" placeholder="Your Password" type="password" id="password" name="password" required><br><br>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <div class="control">
+                                    <input class="input" placeholder="OTP is enabled!" type="text" id="otp" name="otp"> <br><br>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="checkbox"><input type="checkbox">Remember me</label>
+                            </div>
+                            <button class="button is-block is-info is-large is-fullwidth" type="submit">Login <i class="fa fa-sign-in" aria-hidden="true"></i></button>
+                            <p class="has-text-grey"><a href="{{url_for('reset_password')}}">Are you forget your password?</a><br><br></p>
+                        </form>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

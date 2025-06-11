@@ -5,34 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock title %} - CVOStriker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bulma.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+  
+  <!-- Ejemplo de barra de navegación vertical con Bulma -->
+  <div style="display: flex; min-height: 100vh;">
+    <aside class="menu has-background-primary" style="width: 220px; min-height: 100vh;">
+      <p class="menu-label has-text-white" style="padding-top: 1rem;">
+        Navegación
+      </p>
 
-<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
-  <div id="navbarMain" class="navbar-menu">
-    <div class="navbar-start">
-      <a href="{{ url_for('dashboard') }}" class="navbar-item">Dashboard</a>
-      <a href="{{ url_for('about_me') }}" class="navbar-item">About Me</a>
-      <a href="{{ url_for('multimedia') }}" class="navbar-item">Multimedia</a>
-      <a href="{{ url_for('experience') }}" class="navbar-item">Experience</a>
-      <a href="{{ url_for('certificates') }}" class="navbar-item">Certificates</a>
-      <a href="{{ url_for('projects') }}" class="navbar-item">Projects</a>
-      <a href="{{ url_for('pdf_generator') }}" class="navbar-item">PDF Generator</a>
-      <a class="navbar-item" href="{{ url_for('configuration_dashboard') }}">Configuration</a>
-    </div>
-    <div class="navbar-end">
-      <div class="navbar-item">
-        <div class="buttons">
-          <a href="{{ url_for('logout') }}" class="button is-light">Logout</a>
+      <ul class="menu-list">
+        <li>
+          <a href="{{ url_for('dashboard') }}" class="has-text-white">Dashboard</a>
+        </li>
+        <li>
+          <a href="{{ url_for('about_me') }}" class="has-text-white">About Me</a>
+        </li>
+        <li>
+          <a href="{{ url_for('multimedia') }}" class="has-text-white">Multimedia</a>
+        </li>
+        <li>
+          <a href="{{ url_for('experience') }}" class="has-text-white">Experience</a>
+        </li>
+        <li>
+          <a href="{{ url_for('certificates') }}" class="has-text-white">Certificates</a>
+        </li>
+        <li>
+          <a href="{{ url_for('projects') }}" class="has-text-white">Projects</a>
+        </li>
+        <li>
+          <a href="{{ url_for('pdf_generator') }}" class="has-text-white">PDF Generator</a>
+        </li>
+        <li>
+          <a href="{{ url_for('configuration_dashboard') }}" class="has-text-white">Configuration</a>
+        </li>
+      </ul>
+      <div style="margin-top: auto; padding: 1rem;">
+        <a href="{{ url_for('logout') }}" class="button is-light is-fullwidth">Logout</a>
+      </div>
+    </aside>
+    <main class="section" style="flex: 1;">
+      <div class="container">
+        <div class="box">
+          {% block content %}
+            <h1>Welcome to the CVOStriker Admin Dashboard</h1>
+            <p>This is the admin dashboard where you can manage your CVOStriker application.</p>
+          {% endblock content %}
         </div>
       </div>
-    </div>
+    </main>
   </div>
-</nav>
-
-    {% block content %}
-        <h1>Welcome to the CVOStriker Admin Dashboard</h1>
-        <p>This is the admin dashboard where you can manage your CVOStriker application.</p>
-    {% endblock content %}
 </body>
 </html>
