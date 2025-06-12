@@ -1,3 +1,14 @@
 .menu-list li a{
     border-radius: 0 !important;
 }
+aside.menu {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 220px;
+    padding: 0;
+}
+.footer-nav-container{
+    margin-top: auto;
+    /*padding: 0 1rem 1rem 1rem;*/
+}
