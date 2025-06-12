@@ -20,9 +20,10 @@
                             <img src="https://via.placeholder.com/150">
                         </figure>
                         <form action="/login" method="POST">
+                            <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
                             <div class="field">
                                 <div class="control">
-                                    <input class="input is-large" placeholder="Your Email or Username!" autofocus="" type="text" id="username" name="username" required><br><br>
+                                    <input class="input is-large" placeholder="Your Username!" autofocus="" type="text" id="username" name="username" required><br><br>
                                 </div>
                             </div>
 
@@ -39,8 +40,12 @@
                             <div class="field">
                                 <label class="checkbox"><input type="checkbox">Remember me</label>
                             </div>
-                            <button class="button is-block is-info is-large is-fullwidth" type="submit">Login <i class="fa fa-sign-in" aria-hidden="true"></i></button>
-                            <p class="has-text-grey"><a href="{{url_for('reset_password')}}">Are you forget your password?</a><br><br></p>
+                            <button class="button is-block is-info is-light is-fullwidth" type="submit">Login <i class="fa fa-sign-in" aria-hidden="true"></i></button>
+                            <div class="field">
+                                <div class="control has-text-centered">
+                                    <a href="{{ url_for('reset_password') }}" class="button is-text is-small">Forgot your password?</a>
+                                </div>
+                            </div>
                         </form>
                     </div>
                     

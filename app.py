@@ -85,6 +85,8 @@ def login():
         password = request.form['password']
         session = Session()
         user_to_login = session.query(User).filter_by(username=username).first()
+        if not user_to_login:
+            user_to_login = session.query(GeneralInfo).filter_by(email=username).first().user
         session.close()
 
         if user_to_login and check_password_hash(user_to_login.password, password):
@@ -119,7 +121,7 @@ def reset_password():
         session.close()
         if email == user_email:
             token = generate_reset_token(email)
-            print("TOKEN URL:", "http://localhost:5002/password_recovery/"+token)
+            print("TOKEN URL:", "http://localhost:5000/password_recovery/"+token)
             # Send email here with the token to url/password_recovery/<token>
             # For example, you can use Flask-Mail or any other email service
             return redirect(url_for('login'))
