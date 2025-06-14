@@ -493,7 +493,8 @@ def configuration_otp():
         session.close()
 
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        return render_template('configuration/otp.html', user=user, qr_base64=qr_base64)
+
+        return render_template('configuration/otp.html', user=user, qr_base64=qr_base64, otp_string=user.OTP)
         #return send_file(buffer, mimetype='image/png')
 
 @app.route('/configuration/otp/delete', methods=['GET', 'POST'])
