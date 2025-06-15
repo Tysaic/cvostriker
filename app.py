@@ -458,6 +458,11 @@ def pdf_generator():
 
 
 """------------------------Config Site------------------------"""
+
+### QUEDAMOS EN QUE GUARDA EL OTP EXITOSAMENTE
+# PROBAR QUE PASA SI SALE ERRADO
+# CONFIGURAR SI TIENE OTP DEJAR DE VER EL ENABLE MEJORANDO SU VISTA
+# IMPLEMENTAR EL DELETE_OTP
 @app.route('/configuration', methods=['GET'])
 @login_required
 def configuration_dashboard():
@@ -467,22 +472,23 @@ def configuration_dashboard():
     return render_template('configuration/configuration.html', user=user)
 
 
-@app.route('/configuration/otp', methods=['GET', 'POST'])
+@app.route('/configuration/otp', methods=['GET'])
 @login_required
 def configuration_otp():
     session = Session()
     user = get_session_user(session)
+    session.close()
+    " Se debe verificar si el usuario ya tiene OTP configurado para habilitar opcion de habilitado o deshabilitado a la vista "
+    return render_template('configuration/otp.html', user=user, qr_base64=None)
 
-    if request.method == 'GET':
-        session.close()
-        return render_template('configuration/otp.html', user=user, qr_base64=None)
-    
-    elif request.method == 'POST':
-
-        user.OTP = pyotp.random_base32()
-        session.commit()
-
-        otp_uri = pyotp.totp.TOTP(user.OTP).provisioning_uri(
+@app.route('/configuration/otp/show', methods=['GET', 'POST'])
+@login_required
+def show_qr_code():
+    session = Session()
+    user = get_session_user(session)
+    if request.method == 'POST':
+        user_OTP = pyotp.random_base32()
+        otp_uri = pyotp.totp.TOTP(user_OTP).provisioning_uri(
             name=user.username, 
             issuer_name='CVOStriker OTP'
         )
@@ -493,9 +499,32 @@ def configuration_otp():
         session.close()
 
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return render_template('configuration/confirm_otp.html', user=user, qr_base64=qr_base64, otp_string=user_OTP)
 
-        return render_template('configuration/otp.html', user=user, qr_base64=qr_base64, otp_string=user.OTP)
-        #return send_file(buffer, mimetype='image/png')
+@app.route('/configuration/otp/verify_otp', methods=[ 'POST'])
+@login_required
+def verify_otp():
+    session = Session()
+    user = get_session_user(session)
+    password = request.form['password']
+    code_otp = request.form['otp_code']
+    otp_string = request.form['otp_string']
+    password_check = check_password_hash(user.password, password)
+    totp_by_user = pyotp.TOTP(otp_string)
+    code_otp_is_valid = totp_by_user.verify(code_otp)
+
+    if password_check and code_otp_is_valid:
+        user.OTP = otp_string
+        session.commit()
+        session.close()
+        return redirect(url_for('configuration_otp', message='OTP has been successfully configured!'))
+    else:
+        return "Invalid OTP code or password. Please try again.", 400
+
+
+
+
+
 
 @app.route('/configuration/otp/delete', methods=['GET', 'POST'])
 @login_required
@@ -508,6 +537,7 @@ def configuration_otp_delete():
         session.commit()
         session.close()
         return redirect(url_for('configuration_otp'))
+    
 
 """------------------------Creation User------------------------"""
 

@@ -8,6 +8,9 @@
                 <header>
                     <h3 class="title is-3">OTP Settings</h3>
                 </header>
+                {% if message %}
+                    <p>OTP QR configurated succesfully</p>
+                {% endif %}
                 {% if qr_base64 %}
                     <figure>
                         <img class="image is-128x128" src="data:image/png;base64, {{qr_base64}}" alt="QR Code" style="display: inline-block;">
@@ -23,7 +26,7 @@
                     </form>
 
                 {% else %}
-                    <form action="{{ url_for('configuration_otp') }}" method="POST">
+                    <form action="{{ url_for('show_qr_code') }}" method="POST">
                         <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
                         <div class="field">
                             <div class="control">
