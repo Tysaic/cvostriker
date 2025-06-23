@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}OTP settings{% endblock title %}
+{% block content %}
+<div class="box">
+    <div class="columns">
+        <div class="column is-full has-text-centered">
+            <header>
+                <h3>Confirm OTP!</h3>
+            </header>
+            <img src="data:image/png;base64, {{qr_base64}}" alt="QR Code">
+            <p>OTP STRING: {{otp_string}}</p>
+            <form action="{{ url_for('verify_otp', otp_string=otp_string) }}" method="POST">
+                    <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">
+                    <input type="hidden" value="{{ otp_string }}" name="otp_string">
+                    <div class="field">
+                        <div class="control">
+                            <input class="input" type="password" name="password" placeholder="Enter your password to valid" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <input class="input" type="text" name="otp_code" placeholder="Enter OTP code" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button is-success">Confirm OTP</button>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}OTP settings{% endblock title %}
+{% block content %}
+    <div class="box">
+        <div class="columns">
+            <div class="column is-full has-text-centered">
+                <header>
+                    <h3 class="title is-3">OTP Settings</h3>
+                </header>
+                {% if message %}
+                    <p>OTP QR configurated succesfully</p>
+                {% endif %}
+                {% if qr_base64 %}
+                    <figure>
+                        <img class="image is-128x128" src="data:image/png;base64, {{qr_base64}}" alt="QR Code" style="display: inline-block;">
+                    </figure>
+                    <p>OTP STRING: {{otp_string}}</p>
+                    <form action="{{ url_for('configuration_otp_delete') }}" method="POST">
+                        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
+                            <div class="field">
+                                <div class="control">
+                                    <button type="submit" class="button is-danger">Delete</button>
+                                </div>
+                            </div>
+                    </form>
+
+                {% else %}
+                    <form action="{{ url_for('show_qr_code') }}" method="POST">
+                        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-success" type="submit">Enable</button>
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+{% endblock content %}

@@ -5,3 +5,6 @@ Werkzeug
 SQLAlchemy
 flask-session
 flask-wtf
+pyotp
+qrcode
+Pillow

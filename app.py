@@ -9,10 +9,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import date
 from itsdangerous import URLSafeTimedSerializer
+from io import BytesIO
 import os
 import uuid
 import datetime
-
+import pyotp
+import qrcode
+import base64
 
 """-----------------------Declaration--------------------------"""
 # Flask app
@@ -32,6 +35,7 @@ csrf = CSRFProtect(app)
 
 
 # Creating Database in case to be neccessary
+"""----------------------------Basic Tools functions ----------------------------"""
 
 Base.metadata.create_all(bind=engine)
 
@@ -43,10 +47,7 @@ def file_extension(filename):
     return filename.rsplit('.', 1)[1].lower()
 
 def get_session_user(session):
-    #session = Session()
     user = session.query(User).filter_by(id=fsession.get('user_id')).first()
-    print("USER:", user)
-    #session.close()
     return user
 
 def login_required(f):
@@ -84,6 +85,8 @@ def login():
         password = request.form['password']
         session = Session()
         user_to_login = session.query(User).filter_by(username=username).first()
+        if not user_to_login:
+            user_to_login = session.query(GeneralInfo).filter_by(email=username).first().user
         session.close()
 
         if user_to_login and check_password_hash(user_to_login.password, password):
@@ -114,18 +117,18 @@ def reset_password():
     if request.method == 'POST':
         email = request.form['email']
         session = Session()
-        user_email = session.query(GeneralInfo).filter_by(email=email).first().email
+        user_email = session.query(GeneralInfo).filter_by(email=email).first()
         session.close()
-        if email == user_email:
+        if user_email:
             token = generate_reset_token(email)
-            print("TOKEN URL:", "http://localhost:5002/password_recovery/"+token)
+            print("TOKEN URL:", "http://localhost:5000/password_recovery/"+token)
             # Send email here with the token to url/password_recovery/<token>
             # For example, you can use Flask-Mail or any other email service
             return redirect(url_for('login'))
         else:
-            print('Invalid email address')
-            return redirect(url_for('reset_password'))
+            message = "Email not found, please try again!"
 
+        return render_template('login/reset_password.html', message=message)
     return render_template('login/reset_password.html')
 
 @app.route('/password_recovery/<token>', methods=['GET', 'POST'])
@@ -154,7 +157,7 @@ def recovery_password(token):
 
 
 
-"""-----------------------Functions--------------------------"""
+"""-----------------------URLS--------------------------"""
 @app.route('/', methods=['GET'])
 @login_required
 def dashboard():
@@ -452,8 +455,92 @@ def delete_project(id):
 def pdf_generator():
     return render_template('pdf_generator.html')
 
-"""
-"""
+
+
+"""------------------------Config Site------------------------"""
+
+### QUEDAMOS EN QUE GUARDA EL OTP EXITOSAMENTE
+# PROBAR QUE PASA SI SALE ERRADO
+# CONFIGURAR SI TIENE OTP DEJAR DE VER EL ENABLE MEJORANDO SU VISTA
+# IMPLEMENTAR EL DELETE_OTP
+@app.route('/configuration', methods=['GET'])
+@login_required
+def configuration_dashboard():
+    session = Session()
+    user = get_session_user(session)
+    session.close()
+    return render_template('configuration/configuration.html', user=user)
+
+
+@app.route('/configuration/otp', methods=['GET'])
+@login_required
+def configuration_otp():
+    session = Session()
+    user = get_session_user(session)
+    session.close()
+    " Se debe verificar si el usuario ya tiene OTP configurado para habilitar opcion de habilitado o deshabilitado a la vista "
+    return render_template('configuration/otp.html', user=user, qr_base64=None)
+
+@app.route('/configuration/otp/show', methods=['GET', 'POST'])
+@login_required
+def show_qr_code():
+    session = Session()
+    user = get_session_user(session)
+    if request.method == 'POST':
+        user_OTP = pyotp.random_base32()
+        otp_uri = pyotp.totp.TOTP(user_OTP).provisioning_uri(
+            name=user.username, 
+            issuer_name='CVOStriker OTP'
+        )
+        qr = qrcode.make(otp_uri)
+        buffer = BytesIO()
+        qr.save(buffer, format='PNG')
+        buffer.seek(0)
+        session.close()
+
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        return render_template('configuration/confirm_otp.html', user=user, qr_base64=qr_base64, otp_string=user_OTP)
+
+@app.route('/configuration/otp/verify_otp', methods=[ 'POST'])
+@login_required
+def verify_otp():
+    session = Session()
+    user = get_session_user(session)
+    password = request.form['password']
+    code_otp = request.form['otp_code']
+    otp_string = request.form['otp_string']
+    password_check = check_password_hash(user.password, password)
+    totp_by_user = pyotp.TOTP(otp_string)
+    code_otp_is_valid = totp_by_user.verify(code_otp)
+
+    if password_check and code_otp_is_valid:
+        user.OTP = otp_string
+        session.commit()
+        session.close()
+        return redirect(url_for('configuration_otp', message='OTP has been successfully configured!'))
+    else:
+        return "Invalid OTP code or password. Please try again.", 400
+
+
+
+
+
+
+@app.route('/configuration/otp/delete', methods=['GET', 'POST'])
+@login_required
+def configuration_otp_delete():
+    session = Session()
+    user = get_session_user(session)
+
+    if request.method == 'POST':
+        user.OTP = None
+        session.commit()
+        session.close()
+        return redirect(url_for('configuration_otp'))
+    
+
+"""------------------------Creation User------------------------"""
+
 @app.route('/create_new_user', methods=['GET'])
 def create_new_user():
     session = Session()
@@ -504,8 +591,6 @@ def get_user():
     except Exception as e:
         session.close()
         return jsonify({'error': str(e), 'Message': 'Set /create_new_user to create new one'}), 500
-"""
-"""
 
 
 if __name__ == '__main__':
@@ -515,4 +600,4 @@ if __name__ == '__main__':
     # Create the certificates folder if it doesn't exist
     if not os.path.exists(app.config['CERTIFICATES_FOLDER']):
         os.makedirs(app.config['CERTIFICATES_FOLDER'], mode=0o755, exist_ok=True)
-    app.run(port=5002, debug=True)
+    app.run(port=5000, debug=True)
