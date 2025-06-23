@@ -117,18 +117,18 @@ def reset_password():
     if request.method == 'POST':
         email = request.form['email']
         session = Session()
-        user_email = session.query(GeneralInfo).filter_by(email=email).first().email
+        user_email = session.query(GeneralInfo).filter_by(email=email).first()
         session.close()
-        if email == user_email:
+        if user_email:
             token = generate_reset_token(email)
             print("TOKEN URL:", "http://localhost:5000/password_recovery/"+token)
             # Send email here with the token to url/password_recovery/<token>
             # For example, you can use Flask-Mail or any other email service
             return redirect(url_for('login'))
         else:
-            print('Invalid email address')
-            return redirect(url_for('reset_password'))
+            message = "Email not found, please try again!"
 
+        return render_template('login/reset_password.html', message=message)
     return render_template('login/reset_password.html')
 
 @app.route('/password_recovery/<token>', methods=['GET', 'POST'])
