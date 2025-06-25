@@ -11,13 +11,10 @@
                 {% if message %}
                     <p>OTP QR configurated succesfully</p>
                 {% endif %}
-                {% if qr_base64 %}
-                    <figure>
-                        <img class="image is-128x128" src="data:image/png;base64, {{qr_base64}}" alt="QR Code" style="display: inline-block;">
-                    </figure>
-                    <p>OTP STRING: {{otp_string}}</p>
+                {% if qr_validator %}
                     <form action="{{ url_for('configuration_otp_delete') }}" method="POST">
                         <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
+                        <p>Date OTP Created: {{user.otp_created_at}}</p>
                             <div class="field">
                                 <div class="control">
                                     <button type="submit" class="button is-danger">Delete</button>

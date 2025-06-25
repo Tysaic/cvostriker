@@ -12,3 +12,7 @@ aside.menu {
     margin-top: auto;
     /*padding: 0 1rem 1rem 1rem;*/
 }
+
+.qr-image{
+    display: inline;
+}

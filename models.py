@@ -185,7 +185,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(32), unique=True, nullable=False)
     password = Column(String(128), nullable=False)
-    OTP = Column(String(32), nullable=True, default=lambda: pyotp.random_base32())
+    OTP = Column(String(32), nullable=True, default=None)
+    otp_created_at = Column(DateTime, nullable=True)
 
     # uselist=False means that this relationship is one-to-one and get the object directly e.g: user.general_info
     general_info = relationship("GeneralInfo", back_populates="user", uselist=False, cascade="all, delete-orphan")

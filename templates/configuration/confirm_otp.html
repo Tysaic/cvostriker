@@ -8,7 +8,7 @@
             <header>
                 <h3>Confirm OTP!</h3>
             </header>
-            <img src="data:image/png;base64, {{qr_base64}}" alt="QR Code">
+            <img class="image is-128x128 qr-image" src="data:image/png;base64, {{qr_base64}}" alt="QR Code">
             <p>OTP STRING: {{otp_string}}</p>
             <form action="{{ url_for('verify_otp', otp_string=otp_string) }}" method="POST">
                     <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">

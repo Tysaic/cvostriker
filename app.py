@@ -85,8 +85,13 @@ def login():
         password = request.form['password']
         session = Session()
         user_to_login = session.query(User).filter_by(username=username).first()
-        if not user_to_login:
-            user_to_login = session.query(GeneralInfo).filter_by(email=username).first().user
+        if user_to_login is None:
+            #user_to_login = session.query(GeneralInfo).filter_by(email=username).first().user
+            user_to_login = session.query(GeneralInfo).filter_by(email=username).first()
+            if user_to_login is not None:
+                user_to_login = user_to_login.user
+            else:
+                return render_template('login/login.html', message='Invalid User/Password!')
         session.close()
 
         if user_to_login and check_password_hash(user_to_login.password, password):
@@ -478,8 +483,10 @@ def configuration_otp():
     session = Session()
     user = get_session_user(session)
     session.close()
-    " Se debe verificar si el usuario ya tiene OTP configurado para habilitar opcion de habilitado o deshabilitado a la vista "
-    return render_template('configuration/otp.html', user=user, qr_base64=None)
+    if user.OTP:
+        return render_template('configuration/otp.html', user=user, qr_validator=True)
+    else:
+        return render_template('configuration/otp.html', user=user, qr_validator=False)
 
 @app.route('/configuration/otp/show', methods=['GET', 'POST'])
 @login_required
@@ -515,6 +522,7 @@ def verify_otp():
 
     if password_check and code_otp_is_valid:
         user.OTP = otp_string
+        user.otp_created_at = datetime.datetime.now()
         session.commit()
         session.close()
         return redirect(url_for('configuration_otp', message='OTP has been successfully configured!'))
