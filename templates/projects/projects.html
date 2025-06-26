@@ -41,28 +41,47 @@
     <h1>Upload New Projects</h1>
     <form method="post" action="{{ url_for('projects')}}">
         <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
-        <div class="form-group">
-            <label for="title">Project title:</label>
-            <input type="text" id="title" name="title" class="form-control" required>
+        <div class="field">
+            <label class="label" for="title">Project title:</label>
+            <div class="control">
+                <input class="input" type="text" id="title" name="title" required>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" class="form-control" required>
-            </textarea>
+        <div class="field">
+            <label class="label" for="description">Description:</label>
+            <div class="control">
+                <textarea class="textarea" id="description" name="description" required></textarea>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="init_date">Start Date:</label>
-            <input type="date" id="init_date" name="init_date" class="form-control" value="{{ current_date }}" required>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label" for="init_date">Start Date:</label>
+                    <div class="control">
+                        <input class="input" type="date" id="init_date" name="init_date" value="{{ current_date }}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="field">
+                    <label class="label" for="end_date">End Date:</label>
+                    <div class="control">
+                        <input class="input" type="date" id="end_date" name="end_date">
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="end_date">End Date:</label>
-            <input type="date" id="end_date" name="end_date" class="form-control">
+        <div class="field">
+            <label class="label" for="aptitudes">Describe aptitudes and technologies:</label>
+            <div class="control">
+                <input class="input" type="text" id="aptitudes" name="aptitudes" required>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="aptitudes">Describe aptitudes and technologies:</label>
-            <input type="text", id="aptitudes" name="aptitudes" class="form-control" required>
+        <div class="field">
+            <div class="control">
+                <button class="button is-primary" type="submit">Submit</button>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 
 {% endblock content %}

@@ -23,31 +23,79 @@
 
     <h2>Create new experiences</h2>
     <form action="{{ url_for('new_experience') }}" method="POST">
-        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
-        <label for="short_description">Short Description:</label>
-        <input type="text" id="short_description" name="short_description"><br>
-
-        <label for="long_description">Long Description:</label>
-        <textarea id="long_description" name="long_description"></textarea><br>
-
-        <label for="aptitudes">Aptitudes:</label>
-        <input type="text" id="aptitudes" name="aptitudes"><br>
-
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" value="{{ current_date }}"><br>
-
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date"><br>
-
-        <label for="company">Company:</label>
-        <input type="text" id="company" name="company"><br>
-
-        <label for="position">Position:</label>
-        <input type="text" id="position" name="position"><br>
-
-        <label for="location">Location:</label>
-        <input type="text" id="location" name="location"><br>
-
-        <button type="submit">Submit</button>
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">
+        <div class="columns is-multiline">
+            <!-- First row -->
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="short_description">Short Description:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="short_description" name="short_description">
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="long_description">Long Description:</label>
+                    <div class="control">
+                        <textarea class="textarea" id="long_description" name="long_description"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="aptitudes">Aptitudes:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="aptitudes" name="aptitudes">
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="start_date">Start Date:</label>
+                    <div class="control">
+                        <input class="input" type="date" id="start_date" name="start_date" value="{{ current_date }}">
+                    </div>
+                </div>
+            </div>
+            <!-- Second row -->
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="end_date">End Date:</label>
+                    <div class="control">
+                        <input class="input" type="date" id="end_date" name="end_date">
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="company">Company:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="company" name="company">
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="position">Position:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="position" name="position">
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="location">Location:</label>
+                    <div class="control">
+                        <input class="input" type="text" id="location" name="location">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="field">
+            <div class="control">
+                <button class="button is-primary" type="submit">Submit</button>
+            </div>
+        </div>
     </form>
 {% endblock content %}

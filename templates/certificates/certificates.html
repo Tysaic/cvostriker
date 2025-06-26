@@ -5,6 +5,44 @@
 {% block content %}
 
     <h1>Certificates</h1>
+    <form action="{{ url_for('certificates') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">
+        <h2 class="title is-4">Upload Certificate</h2>
+        <div class="columns is-multiline">
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="title">Title</label>
+                    <div class="control">
+                        <input class="input" type="text" id="title" name="title" required>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="description">Description</label>
+                    <div class="control">
+                        <input class="input" type="text" id="description" name="description" required>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="field">
+                    <label class="label" for="file">Select File</label>
+                    <div class="control">
+                        <input class="input" type="file" id="file" name="file" accept=".pdf, .png, .jpg, .jpeg, .docx, .pptx" required>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half is-flex is-align-items-flex-end">
+                <div class="field">
+                    <div class="control">
+                        <button class="button is-primary" type="submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <br>
     <p>List of certificates.</p>
 
     <table class="table table-striped">
@@ -37,22 +75,4 @@
             {% endif%}
         </tbody>
     </table>
-
-
-    <form action="{{ url_for('certificates') }}" method="POST"  enctype="multipart/form-data">
-        <input type="hidden" value="{{ csrf_token() }}" name="csrf_token"> 
-        <h2>Upload Certificate</h2>
-        <label for="title">Title</label>
-        <input type="text" id="title" name="title" required><br>
-
-        <label for="description">Description</label>
-        <input type="text" id="description" name="description" required><br>
-
-        <label for="file">Select File:</label>
-        <input type="file" id="file" name="file" accept=".pdf, .png, .jpg, .jpeg, .docx, .pptx" required><br>
-
-        <button type="submit">Submit</button>
-
-    </form>
-
 {% endblock content %}
