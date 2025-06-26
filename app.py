@@ -72,21 +72,33 @@ def verify_reset_token(token):
     except Exception as e:
         print("Error:", e)
         return (False, None)
+
+def otp_validator(otp_to_check, user):
+
+    if otp_to_check and user.OTP:
+        otp_user = pyotp.TOTP(user.OTP)
+        validating_otp = otp_user.verify(otp_to_check)
+        # Aqui deberia de desencriptar el otp para verificarlo 
+        return validating_otp
+    else:
+        return True
+
     
 
 """-----------------------Login and Sessions--------------------------"""
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    token = generate_reset_token('fake@mail.com')
+    #token = generate_reset_token('fake@mail.com')
 
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        otp_checker = request.form['otp']
+        
         session = Session()
         user_to_login = session.query(User).filter_by(username=username).first()
         if user_to_login is None:
-            #user_to_login = session.query(GeneralInfo).filter_by(email=username).first().user
             user_to_login = session.query(GeneralInfo).filter_by(email=username).first()
             if user_to_login is not None:
                 user_to_login = user_to_login.user
@@ -94,14 +106,16 @@ def login():
                 return render_template('login/login.html', message='Invalid User/Password!')
         session.close()
 
-        if user_to_login and check_password_hash(user_to_login.password, password):
+        otp = otp_validator(otp_checker, user_to_login)
+
+        if user_to_login and check_password_hash(user_to_login.password, password) and (not user_to_login.OTP or otp):
             flash('Login Successfully here!')
             fsession['user_id'] = str(user_to_login.id)
             fsession['username'] = str(user_to_login.username)
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid username or password')
-            return render_template('login/login.html', message='Invalid User/Password!')
+            flash('Invalid username/password or OTP')
+            return render_template('login/login.html', message='Invalid User/Password or OTP Code if enable!')
     
     if request.method == 'GET' and fsession.get('user_id'):
         return redirect(url_for('dashboard'))
@@ -464,10 +478,6 @@ def pdf_generator():
 
 """------------------------Config Site------------------------"""
 
-### QUEDAMOS EN QUE GUARDA EL OTP EXITOSAMENTE
-# PROBAR QUE PASA SI SALE ERRADO
-# CONFIGURAR SI TIENE OTP DEJAR DE VER EL ENABLE MEJORANDO SU VISTA
-# IMPLEMENTAR EL DELETE_OTP
 @app.route('/configuration', methods=['GET'])
 @login_required
 def configuration_dashboard():
@@ -521,6 +531,7 @@ def verify_otp():
     code_otp_is_valid = totp_by_user.verify(code_otp)
 
     if password_check and code_otp_is_valid:
+        # Aqui el OTP deberia ir encriptado al guardarlo.
         user.OTP = otp_string
         user.otp_created_at = datetime.datetime.now()
         session.commit()
@@ -528,10 +539,6 @@ def verify_otp():
         return redirect(url_for('configuration_otp', message='OTP has been successfully configured!'))
     else:
         return "Invalid OTP code or password. Please try again.", 400
-
-
-
-
 
 
 @app.route('/configuration/otp/delete', methods=['GET', 'POST'])
