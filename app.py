@@ -173,9 +173,6 @@ def recovery_password(token):
         return render_template('login/recovery_password.html', token=token)
 
 
-
-
-
 """-----------------------URLS--------------------------"""
 @app.route('/', methods=['GET'])
 @login_required
@@ -548,11 +545,42 @@ def configuration_otp_delete():
     user = get_session_user(session)
 
     if request.method == 'POST':
-        user.OTP = None
-        session.commit()
-        session.close()
-        return redirect(url_for('configuration_otp'))
+
+        return redirect(url_for('confirm_password', option='delete_otp'))
     
+
+"""------------------------Confirm Password To set some Option------------------------"""
+@app.route('/configuration/confirm_password/<option>', methods=['GET', 'POST'])
+@login_required
+def confirm_password(option):
+    session = Session()
+    user = get_session_user(session)
+    
+    if request.method == 'GET':
+
+        return render_template('password_confirmation/edit_or_confirm_password.html', option=option)
+
+    elif request.method == 'POST':
+        password = request.form['password']
+        confirm = request.form['confirm']
+        checking_passwords = ( (password == confirm) and check_password_hash(user.password, password) )
+        if checking_passwords:
+            ## There are the options where enable confirm password
+            if option == 'delete_otp':
+                user.OTP = None
+                user.otp_created_at = None
+                session.commit()
+                session.close()
+                return redirect(url_for('configuration_otp', message='OTP has been deleted!'))
+            elif option == 'edit_password':
+                pass
+        else:
+            session.close()
+            return render_template(
+                'password_confirmation/edit_or_confirm_password.html', 
+                option=option, 
+                message='Password do not match'
+            )
 
 """------------------------Creation User------------------------"""
 
