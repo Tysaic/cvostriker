@@ -3,7 +3,7 @@ from flask import session as fsession
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session as FlaskSession
 from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User
-from database import DATABASE_URL, engine, Session, get_session, Base
+from database import DATABASE_URL, engine, Session, Base
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -61,10 +61,12 @@ def login_required(f):
     return decorated_function
 
 def generate_reset_token(email):
+    
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
 
 def verify_reset_token(token):
+
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     try:
         email = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)
@@ -80,9 +82,10 @@ def otp_validator(otp_to_check, user):
         validating_otp = otp_user.verify(otp_to_check)
         # Aqui deberia de desencriptar el otp para verificarlo 
         return validating_otp
-    else:
+    elif user.OTP is None:
         return True
-
+    elif (otp_to_check is None and user.OTP is not None):
+        return False
     
 
 """-----------------------Login and Sessions--------------------------"""
@@ -130,47 +133,6 @@ def logout():
     fsession.clear()
     return redirect(url_for('login'))
 
-@app.route('/reset_password', methods=['GET', 'POST'])
-def reset_password():
-
-    if request.method == 'POST':
-        email = request.form['email']
-        session = Session()
-        user_email = session.query(GeneralInfo).filter_by(email=email).first()
-        session.close()
-        if user_email:
-            token = generate_reset_token(email)
-            print("TOKEN URL:", "http://localhost:5000/password_recovery/"+token)
-            # Send email here with the token to url/password_recovery/<token>
-            # For example, you can use Flask-Mail or any other email service
-            return redirect(url_for('login'))
-        else:
-            message = "Email not found, please try again!"
-
-        return render_template('login/reset_password.html', message=message)
-    return render_template('login/reset_password.html')
-
-@app.route('/password_recovery/<token>', methods=['GET', 'POST'])
-def recovery_password(token):
-    validation, email = verify_reset_token(token)
-    if request.method == 'POST':
-        if validation:
-            new_password = request.form['new_password']
-            confirm_password = request.form['confirm_password']
-            if new_password == confirm_password:
-                session = Session()
-                user_to_change_password = session.query(GeneralInfo).filter_by(email=email).first()
-                user_to_change_password.user.password = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=16)
-                session.commit()
-                session.close()
-                return redirect(url_for('login'))
-            else:
-                print("Password do not match")
-                return redirect(url_for('recovery_password', token=token))
-
-        return render_template('login/login.html', message="Token were invalid or don't match your password, please try again recovery!")
-    else:
-        return render_template('login/recovery_password.html', token=token)
 
 
 """-----------------------URLS--------------------------"""
@@ -515,9 +477,9 @@ def show_qr_code():
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         return render_template('configuration/confirm_otp.html', user=user, qr_base64=qr_base64, otp_string=user_OTP)
 
-@app.route('/configuration/otp/verify_otp', methods=[ 'POST'])
+@app.route('/configuration/otp/verify_otp_creation', methods=[ 'POST'])
 @login_required
-def verify_otp():
+def verify_otp_creation():
     session = Session()
     user = get_session_user(session)
     password = request.form['password']
@@ -549,7 +511,68 @@ def configuration_otp_delete():
         return redirect(url_for('confirm_password', option='delete_otp'))
     
 
-"""------------------------Confirm Password To set some Option------------------------"""
+@app.route('/configuration/password', methods=['GET'])
+@login_required
+def password_settings():
+    pass
+
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        session = Session()
+        user_email = session.query(GeneralInfo).filter_by(email=email).first()
+        session.close()
+        if user_email:
+            token = generate_reset_token(email)
+            print("TOKEN URL:", "http://localhost:5000/password_recovery/"+token)
+            # Send email here with the token to url/password_recovery/<token>
+            # For example, you can use Flask-Mail or any other email service
+            return redirect(url_for('login'))
+        else:
+            message = "Email not found, please try again!"
+
+        return render_template('login/reset_password.html', message=message)
+    return render_template('login/reset_password.html')
+
+@app.route('/password_recovery/<token>', methods=['GET', 'POST'])
+def recovery_password(token):
+    validation, email = verify_reset_token(token)
+    if request.method == 'POST':
+        if validation:
+            new_password = request.form['new_password']
+            confirm_password = request.form['confirm_password']
+            if new_password == confirm_password:
+                session = Session()
+                user_to_change_password = session.query(GeneralInfo).filter_by(email=email).first()
+                user_to_change_password.user.password = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=16)
+                session.commit()
+                session.close()
+                return redirect(url_for('login'))
+            else:
+                print("Password do not match")
+                return redirect(url_for('recovery_password', token=token))
+
+        return render_template('login/login.html', message="Token were invalid or don't match your password, please try again recovery!")
+    else:
+        return render_template('login/recovery_password.html', token=token)
+
+
+"""------------------------Confirm Password and Two auth method to change option value ------------------------"""
+
+@app.route('/configuration/otp/confirmation', methods=['GET', 'POST'])
+@login_required
+def confirm_otp():
+    session = Session()
+    user = get_session_user(session)
+    otp = request.form['otp']
+    verification = otp_validator(otp, user)
+    if verification:
+        return True
+    else:
+        return False
+
 @app.route('/configuration/confirm_password/<option>', methods=['GET', 'POST'])
 @login_required
 def confirm_password(option):
@@ -579,7 +602,7 @@ def confirm_password(option):
             return render_template(
                 'password_confirmation/edit_or_confirm_password.html', 
                 option=option, 
-                message='Password do not match'
+                message='Password do not match from backend, please try again!'
             )
 
 """------------------------Creation User------------------------"""
