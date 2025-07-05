@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Recovery{% endblock title %}
+
+{% block content %}
+<div class="columns">
+    <div class="column is-full has-text-centered">
+        <header>
+            <h3 class="title is-3">Set Recovery Email</h3>
+        </header>
+        <br>
+        <!--<form action="{{ url_for('confirm_password', option='set_email_recovery') }}" method="POST">-->
+        <form action="{{ url_for('email_recovery') }}" method="POST">
+            <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">
+            <div class="field">
+                <div class="control">
+                    <input class="input" type="email" name="email_recovery" placeholder="Enter the email!" required>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <button type="submit" class="button is-success">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

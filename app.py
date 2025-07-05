@@ -7,7 +7,7 @@ from database import DATABASE_URL, engine, Session, Base
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from datetime import date
+from datetime import date, timedelta
 from itsdangerous import URLSafeTimedSerializer
 from io import BytesIO
 import os
@@ -27,9 +27,15 @@ app.config['MEDIA_FOLDER'] = os.path.join(os.path.dirname(__file__), 'media', 'm
 app.config['CERTIFICATES_FOLDER'] = os.path.join(os.path.dirname(__file__), 'media', 'certificates')
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm', 'mp3', 'wav'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
-app.config['SECRET_KEY'] = os.urandom(24)
 app.config['SECURITY_PASSWORD_SALT'] = 'my_precious_two'
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SECRET_KEY'] = os.urandom(24)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = False # Set to True if using https
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' for development, 'Strict' for production
+app.config['SESSION_PERMANENT'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60) # Set session lifetime to 60 minutes
+
 FlaskSession(app)
 csrf = CSRFProtect(app)
 
@@ -558,6 +564,19 @@ def recovery_password(token):
     else:
         return render_template('login/recovery_password.html', token=token)
 
+@app.route('/configuration/email_recovery', methods=['GET', 'POST'])
+@login_required
+def email_recovery():
+    session = Session()
+    user = get_session_user(session)
+
+    if request.method == 'GET':
+        return render_template('configuration/email_recovery.html', user=user)
+    elif request.method == 'POST':
+        fsession['email_recovery'] = request.form['email_recovery']
+        return redirect(url_for('confirm_password', option='set_email_recovery'))
+
+    
 
 """------------------------Confirm Password and Two auth method to change option value ------------------------"""
 
@@ -597,6 +616,12 @@ def confirm_password(option):
                 return redirect(url_for('configuration_otp', message='OTP has been deleted!'))
             elif option == 'edit_password':
                 pass
+            elif option == 'set_email_recovery':
+                user.general_info.email_recovery = fsession.get('email_recovery')
+                fsession.pop('email_recovery', None)
+                session.commit()
+                session.close()
+                return redirect(url_for('email_recovery', message='Email recovery has been set!'))
         else:
             session.close()
             return render_template(
@@ -610,7 +635,7 @@ def confirm_password(option):
 @app.route('/create_new_user', methods=['GET'])
 def create_new_user():
     session = Session()
-    hashed_password = generate_password_hash('admin', method='pbkdf2:sha256', salt_length=16)
+    hashed_password = generate_password_hash('admin_12345!!', method='pbkdf2:sha256', salt_length=16)
     user_info = User(username='admin', password=hashed_password)
     session.add(user_info)
     new_user = GeneralInfo(
@@ -650,7 +675,8 @@ def get_user():
             'phone': user.phone,
             'short_description': user.short_description,
             'username': user_info.username,
-            'password': user_info.password
+            'password': user_info.password,
+            'email_recovery': user.email_recovery
         }
         session.close()
         return jsonify(information), 200

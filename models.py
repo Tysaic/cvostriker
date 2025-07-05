@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Boolean
 from sqlalchemy.orm import relationship
 from flask import jsonify
 import datetime
@@ -16,6 +16,7 @@ class GeneralInfo(Base):
     email = Column(String(32), unique=True, nullable=False)
     phone = Column(String(32), nullable=True)
     short_description = Column(String(256), nullable=True)
+    email_recovery = Column(String(32), unique=False, nullable=False, default='')
     user_id = Column(Integer, ForeignKey('user.id'), unique=True, nullable=False)
     user = relationship("User", back_populates="general_info")
 
@@ -179,6 +180,22 @@ class Configuration(Base):
     FONT_SIZES = ['small', 'medium', 'large']
 
 
+# Sessions relationship 
+class Session(Base):
+
+    __tablename__ = 'session'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    created_at = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    last_activity = Column(DateTime, nullable=False, default=datetime.datetime.now)
+    ip_address = Column(String(45), nullable=False)
+    user_agent = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    expires_at = Column(DateTime, nullable=False)
+    user = relationship("User", back_populates="sessions")
+
+
+
 class User(Base):
 
     __tablename__ = 'user'
@@ -187,6 +204,12 @@ class User(Base):
     password = Column(String(128), nullable=False)
     OTP = Column(String(32), nullable=True, default=None)
     otp_created_at = Column(DateTime, nullable=True)
+    # Sessions relationship 
+    failed_login_attempts = Column(Integer, default=0)
+    locked_until = Column(DateTime, nullable=True)
+    last_login = Column(DateTime, nullable=True)
+    password_changed_at = Column(DateTime, nullable=True)
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
 
     # uselist=False means that this relationship is one-to-one and get the object directly e.g: user.general_info
     general_info = relationship("GeneralInfo", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -196,3 +219,4 @@ class User(Base):
     experiences = relationship("Experience", back_populates="user", cascade="all, delete-orphan")
     certifications = relationship("Certification", back_populates="user", cascade="all, delete-orphan")
     projects = relationship("Projects", back_populates="user", cascade="all, delete-orphan")
+    
