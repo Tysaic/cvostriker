@@ -81,17 +81,23 @@ def verify_reset_token(token):
         print("Error:", e)
         return (False, None)
 
-def otp_validator(otp_to_check, user):
+def otp_validator(otp_code, user):
 
-    if otp_to_check and user.OTP:
+    if otp_code and user.OTP:
         otp_user = pyotp.TOTP(user.OTP)
-        validating_otp = otp_user.verify(otp_to_check)
+        validating_otp = otp_user.verify(otp_code)
         # Aqui deberia de desencriptar el otp para verificarlo 
         return validating_otp
     elif user.OTP is None:
         return True
-    elif (otp_to_check is None and user.OTP is not None):
+    elif (otp_code is None and user.OTP is not None):
         return False
+
+
+def exists_otp(user):
+    # Check if the user has OTP enabled
+    return True if user.OTP else False
+
     
 
 """-----------------------Login and Sessions--------------------------"""
@@ -103,7 +109,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        otp_checker = request.form['otp']
+        otp_code = request.form['otp']
         
         session = Session()
         user_to_login = session.query(User).filter_by(username=username).first()
@@ -115,7 +121,7 @@ def login():
                 return render_template('login/login.html', message='Invalid User/Password!')
         session.close()
 
-        otp = otp_validator(otp_checker, user_to_login)
+        otp = otp_validator(otp_code, user_to_login)
 
         if user_to_login and check_password_hash(user_to_login.password, password) and (not user_to_login.OTP or otp):
             flash('Login Successfully here!')
@@ -569,9 +575,10 @@ def recovery_password(token):
 def email_recovery():
     session = Session()
     user = get_session_user(session)
-
+    email_recovery = user.general_info.email_recovery if user.general_info.email_recovery else ''
+    session.close()
     if request.method == 'GET':
-        return render_template('configuration/email_recovery.html', user=user)
+        return render_template('configuration/email_recovery.html', user=user, email_recovery=email_recovery)
     elif request.method == 'POST':
         fsession['email_recovery'] = request.form['email_recovery']
         return redirect(url_for('confirm_password', option='set_email_recovery'))
@@ -597,15 +604,17 @@ def confirm_otp():
 def confirm_password(option):
     session = Session()
     user = get_session_user(session)
-    
+    exists_user_otp = exists_otp(user)
     if request.method == 'GET':
 
-        return render_template('password_confirmation/edit_or_confirm_password.html', option=option)
+        return render_template('password_confirmation/edit_or_confirm_password.html', option=option, otp_exists=exists_user_otp)
 
     elif request.method == 'POST':
         password = request.form['password']
         confirm = request.form['confirm']
-        checking_passwords = ( (password == confirm) and check_password_hash(user.password, password) )
+        otp = otp_validator(request.form["otp"], user)
+        checking_passwords = ( (password == confirm) and check_password_hash(user.password, password) and otp )
+
         if checking_passwords:
             ## There are the options where enable confirm password
             if option == 'delete_otp':
