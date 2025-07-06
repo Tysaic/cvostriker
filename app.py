@@ -119,22 +119,31 @@ def login():
                 user_to_login = user_to_login.user
             else:
                 return render_template('login/login.html', message='Invalid User/Password!')
-        session.close()
 
         otp = otp_validator(otp_code, user_to_login)
 
         if user_to_login and check_password_hash(user_to_login.password, password) and (not user_to_login.OTP or otp):
             flash('Login Successfully here!')
+            if isinstance(user_to_login, User):
+                user_to_login.last_login = datetime.datetime.now()
+                print("User to login:", user_to_login.last_login)
+            elif isinstance(user_to_login, GeneralInfo):
+                user_to_login.user.last_login = datetime.datetime.now()
+                print("USER TO LOGIN:", user_to_login.user.last_login)
+            session.commit()
             fsession['user_id'] = str(user_to_login.id)
             fsession['username'] = str(user_to_login.username)
+            session.close()
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username/password or OTP')
+            session.close()
             return render_template('login/login.html', message='Invalid User/Password or OTP Code if enable!')
     
     if request.method == 'GET' and fsession.get('user_id'):
+
         return redirect(url_for('dashboard'))
-    
+
     return render_template('login/login.html')
 
 @app.route('/logout', methods=['GET'])
@@ -526,7 +535,7 @@ def configuration_otp_delete():
 @app.route('/configuration/password', methods=['GET'])
 @login_required
 def password_settings():
-    pass
+    return render_template('configuration/password_settings.html')
 
 
 @app.route('/reset_password', methods=['GET', 'POST'])
