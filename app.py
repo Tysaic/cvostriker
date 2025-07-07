@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify, s
 from flask import session as fsession
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session as FlaskSession
-from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User
+from models import GeneralInfo, Multimedia, Experience, Certification, Projects, User, Session as SessionUser
 from database import DATABASE_URL, engine, Session, Base
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -30,7 +30,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16MB
 app.config['SECURITY_PASSWORD_SALT'] = 'my_precious_two'
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SECRET_KEY'] = os.urandom(24)
-app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True # Not accessible via JavaScript
 app.config['SESSION_COOKIE_SECURE'] = False # Set to True if using https
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # 'Lax' for development, 'Strict' for production
 app.config['SESSION_PERMANENT'] = False
@@ -121,15 +121,17 @@ def login():
                 return render_template('login/login.html', message='Invalid User/Password!')
 
         otp = otp_validator(otp_code, user_to_login)
-
-        if user_to_login and check_password_hash(user_to_login.password, password) and (not user_to_login.OTP or otp):
+        validating_login = (
+            user_to_login and 
+            check_password_hash(user_to_login.password, password) and 
+            (not user_to_login.OTP or otp) 
+        )
+        if validating_login:
             flash('Login Successfully here!')
             if isinstance(user_to_login, User):
                 user_to_login.last_login = datetime.datetime.now()
-                print("User to login:", user_to_login.last_login)
             elif isinstance(user_to_login, GeneralInfo):
                 user_to_login.user.last_login = datetime.datetime.now()
-                print("USER TO LOGIN:", user_to_login.user.last_login)
             session.commit()
             fsession['user_id'] = str(user_to_login.id)
             fsession['username'] = str(user_to_login.username)
@@ -154,6 +156,44 @@ def logout():
     fsession.clear()
     return redirect(url_for('login'))
 
+@app.before_request
+def security_middleware():
+
+    # Not take public routes
+    session = Session()
+    user = get_session_user(session)
+    public_points = ['login', 'reset_password', 'recovery_password', 'create_new_user', 'get_user']
+    endpoints_validator = request.endpoint in public_points
+    # Save First or another time in session database
+
+
+    # Get Ip address
+    # Get User Agent
+    # and the logic of session security middleware
+    """
+    if usersession not exists created for the first time,
+    if exists and the expired is true delete the activation to 0 a drop fsession.
+    Set async function to drop expired sessions.
+    """
+    if user:
+        exists_current_session = session.query(SessionUser).filter_by(
+            user_id = user.id,
+            is_active = True
+        ).first()
+        if not exists_current_session and not endpoints_validator:
+            session_user = SessionUser(
+                user_id = user.id,
+                created_at = datetime.datetime.now(),
+                last_activity = datetime.datetime.now(),
+                is_active = True,
+                ip_address = '127.0.0.1',
+                expires_at = datetime.datetime.now() + timedelta(minutes=60),
+                user_agent = 'Mozilla',
+            )
+            session.add(session_user)
+            session.commit()
+            session.close()
+        
 
 
 """-----------------------URLS--------------------------"""
@@ -211,8 +251,7 @@ def multimedia():
     #multimedia_files = session.query(Multimedia).all()
     multimedia_files = get_session_user(session).multimedias
     if request.method == 'GET':
-        #for m in multimedia_files:
-        #    print("BULLET:", m, type(m))
+
         session.close()
         return render_template('multimedia/multimedia.html', multimedia_files=multimedia_files)
 
