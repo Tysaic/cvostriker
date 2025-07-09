@@ -98,7 +98,11 @@ def exists_otp(user):
     # Check if the user has OTP enabled
     return True if user.OTP else False
 
-    
+def get_client_ip():
+    pass
+
+def get_user_agent():
+    pass
 
 """-----------------------Login and Sessions--------------------------"""
 
@@ -165,7 +169,8 @@ def security_middleware():
     public_points = ['login', 'reset_password', 'recovery_password', 'create_new_user', 'get_user']
     endpoints_validator = request.endpoint in public_points
     # Save First or another time in session database
-
+    ip_client = get_client_ip()
+    user_agent = get_user_agent()
 
     # Get Ip address
     # Get User Agent
@@ -186,9 +191,9 @@ def security_middleware():
                 created_at = datetime.datetime.now(),
                 last_activity = datetime.datetime.now(),
                 is_active = True,
-                ip_address = '127.0.0.1',
+                ip_address = ip_client,
                 expires_at = datetime.datetime.now() + timedelta(minutes=60),
-                user_agent = 'Mozilla',
+                user_agent = user_agent,
             )
             session.add(session_user)
             session.commit()
