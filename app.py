@@ -99,10 +99,18 @@ def exists_otp(user):
     return True if user.OTP else False
 
 def get_client_ip():
-    pass
+    
+    if request.environ.get('HTTP_X_FORWARDED_FOR'):
+        ip = request.environ['HTTP_X_FORWARDED_FOR'].split(',')[0].strip()
+    elif request.environ.get('HTTP_X_REAL_IP'):
+        ip = request.environ['HTTP_X_REAL_IP']
+    else:
+        ip = request.remote_addr
+    
+    return ip
 
 def get_user_agent():
-    pass
+    return request.headers.get('User-Agent', 'Unknown')
 
 """-----------------------Login and Sessions--------------------------"""
 
@@ -155,9 +163,19 @@ def login():
 @app.route('/logout', methods=['GET'])
 @login_required
 def logout():
+    session = Session()
+    user = get_session_user(session)
+    exists_current_session = session.query(SessionUser).filter_by(
+        user_id = user.id,
+        is_active = True
+    ).order_by(SessionUser.created_at.desc()).first()
+    exists_current_session.is_active = False
+    session.commit()
+    session.close()
     fsession.pop('user_id', None)
     fsession.pop('username', None)
     fsession.clear()
+    
     return redirect(url_for('login'))
 
 @app.before_request
@@ -180,12 +198,26 @@ def security_middleware():
     if exists and the expired is true delete the activation to 0 a drop fsession.
     Set async function to drop expired sessions.
     """
+    # Usuario logueado y con sesion abierta.
     if user:
         exists_current_session = session.query(SessionUser).filter_by(
             user_id = user.id,
             is_active = True
-        ).first()
-        if not exists_current_session and not endpoints_validator:
+        ).order_by(SessionUser.created_at.desc()).first()
+
+        time_today = datetime.datetime.now()
+        if exists_current_session:
+            if (exists_current_session.expires_at < time_today):
+                exists_current_session.is_active = False
+                session.commit()
+                session.close()
+                print("Usuario debe desloguearse!")
+                logout()
+            else:
+                print('Usuario aun puede seguir logueado, finaliza a las:', exists_current_session.expires_at )
+                return None
+
+        else:
             session_user = SessionUser(
                 user_id = user.id,
                 created_at = datetime.datetime.now(),
@@ -197,7 +229,11 @@ def security_middleware():
             )
             session.add(session_user)
             session.commit()
-            session.close()
+            session.close() 
+    else:
+        # Usuario no logueado.
+        print("Usuario debe Loguearse!")
+    
         
 
 
@@ -754,4 +790,5 @@ if __name__ == '__main__':
     # Create the certificates folder if it doesn't exist
     if not os.path.exists(app.config['CERTIFICATES_FOLDER']):
         os.makedirs(app.config['CERTIFICATES_FOLDER'], mode=0o755, exist_ok=True)
-    app.run(port=5000, debug=True)
+    #app.run(port=5000, debug=True)
+    app.run(port=5000, debug=False)
