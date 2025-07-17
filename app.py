@@ -175,7 +175,7 @@ def logout():
     fsession.pop('user_id', None)
     fsession.pop('username', None)
     fsession.clear()
-    
+
     return redirect(url_for('login'))
 
 @app.before_request
@@ -612,12 +612,6 @@ def configuration_otp_delete():
         return redirect(url_for('confirm_password', option='delete_otp'))
     
 
-@app.route('/configuration/password', methods=['GET'])
-@login_required
-def password_settings():
-    return render_template('configuration/password_settings.html')
-
-
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
     if request.method == 'POST':
@@ -673,7 +667,6 @@ def email_recovery():
         return redirect(url_for('confirm_password', option='set_email_recovery'))
 
     
-
 """------------------------Confirm Password and Two auth method to change option value ------------------------"""
 
 @app.route('/configuration/otp/confirmation', methods=['GET', 'POST'])
@@ -711,14 +704,22 @@ def confirm_password(option):
                 user.otp_created_at = None
                 session.commit()
                 session.close()
+                # Enviar mail con otp configurado
                 return redirect(url_for('configuration_otp', message='OTP has been deleted!'))
             elif option == 'edit_password':
-                pass
+                new_password = request.form['new_password']
+                hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256', salt_length=16)
+                user.password = hashed_password
+                session.commit()
+                session.close()
+                # Enviar email cuando password se haya cambiado
+                return redirect(url_for('dashboard', message='Password were changed succesfully!'))
             elif option == 'set_email_recovery':
                 user.general_info.email_recovery = fsession.get('email_recovery')
                 fsession.pop('email_recovery', None)
                 session.commit()
                 session.close()
+                # Enviar email cuando email recovery se haya cambiado o creado
                 return redirect(url_for('email_recovery', message='Email recovery has been set!'))
         else:
             session.close()

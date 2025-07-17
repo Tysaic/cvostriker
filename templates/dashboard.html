@@ -3,6 +3,9 @@
 {% block title %}Dashboard{% endblock title %}
 {% block content %}
 <div class="dashboard-container">
+    {%if message %}
+    <p>{{message}}</p>
+    {% endif %}
     <h1>Welcome to the Dashboard</h1>
     <p>Here you can manage your application settings and view statistics.</p>
     <div class="stats-section">

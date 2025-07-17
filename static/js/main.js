@@ -3,6 +3,7 @@
 
 var passwordField = document.getElementById('password');
 var confirmField = document.getElementById('confirm');
+var new_passwordField = document.getElementById('new_password');
 var _error = document.getElementById('password-error');
 var special_chars = /[!_@#$%^&*(),.?":{}|<>]/;
 var passwordForm = document.getElementById('password-form');
@@ -13,7 +14,7 @@ function ValidateForm(){
         _error.style.color="red";
         return false;
     }
-    else if(!special_chars.test(passwordField.value)){
+    if(!special_chars.test(passwordField.value) || !special_chars.test(new_passwordField.value)){
         _error.textContent = "Password must contain at least one special character.";
         _error.style.color="red";
         return false;
@@ -32,9 +33,11 @@ function togglePasswords(){
     if (passwordField.type == 'password'){
         passwordField.type = 'text';
         confirmField.type = 'text';
+        new_passwordField.type='text';
     }else{
         passwordField.type = 'password';
         confirmField.type = 'password';
+        new_passwordField.type='password';
     }
     
 }
