@@ -250,6 +250,7 @@ def about_me():
     general_info = session.query(GeneralInfo).get(1)
 
     if request.method == 'GET':
+        session.close()
         if general_info:
             return render_template('about_me.html', general_info=general_info)
         else:
@@ -281,8 +282,10 @@ def about_me():
             session.commit()
             session.refrest(new_info)
             session.close()
-        
+
+        session.close()
         return redirect(url_for('about_me'))
+    
 
 @app.route('/multimedia', methods=['GET', 'POST'])
 @login_required
@@ -353,6 +356,7 @@ def delete_file(filename):
 def experience():
     session = Session()
     experiences = get_session_user(session).experiences
+    session.close()
     return render_template('experience/experience.html', experiences=experiences, current_date=date.today())
 
 @app.route('/new_experience', methods=['POST'])
@@ -385,6 +389,7 @@ def edit_experience(id):
     session = Session()
     experience = session.query(Experience).get(id)
     if request.method == 'GET':
+        session.close()
         return render_template('experience/edit_experience.html', experience=experience)
     
     elif request.method == 'POST':
@@ -419,6 +424,7 @@ def certificates():
     session = Session()
     certificates = get_session_user(session).certifications
     if request.method == 'GET':
+        session.close()
         return render_template('certificates/certificates.html', certificates=certificates)
 
     elif request.method == 'POST':
@@ -451,6 +457,7 @@ def edit_certification(id):
     session = Session()
     certification_to_edit = session.query(Certification).get(id)
     if request.method == 'GET':
+        session.close()
         return render_template('certificates/edit_certificates.html', certification=certification_to_edit)
     elif request.method == 'POST':
         certification_to_edit.title = request.form['title']
@@ -598,6 +605,7 @@ def verify_otp_creation():
         session.close()
         return redirect(url_for('configuration_otp', message='OTP has been successfully configured!'))
     else:
+        session.close()
         return "Invalid OTP code or password. Please try again.", 400
 
 
@@ -608,8 +616,10 @@ def configuration_otp_delete():
     user = get_session_user(session)
 
     if request.method == 'POST':
-
+        session.close()
         return redirect(url_for('confirm_password', option='delete_otp'))
+    else:
+        session.close()
     
 
 @app.route('/reset_password', methods=['GET', 'POST'])
@@ -676,6 +686,7 @@ def confirm_otp():
     user = get_session_user(session)
     otp = request.form['otp']
     verification = otp_validator(otp, user)
+    session.close()
     if verification:
         return True
     else:
@@ -688,7 +699,7 @@ def confirm_password(option):
     user = get_session_user(session)
     exists_user_otp = exists_otp(user)
     if request.method == 'GET':
-
+        session.close()
         return render_template('password_confirmation/edit_or_confirm_password.html', option=option, otp_exists=exists_user_otp)
 
     elif request.method == 'POST':
@@ -783,6 +794,16 @@ def get_user():
         session.close()
         return jsonify({'error': str(e), 'Message': 'Set /create_new_user to create new one'}), 500
 
+@app.route('/connection_status')
+def connection_status():
+    pool = engine.pool
+    return jsonify({
+        'pool_size': pool.size(),
+        'checked_in': pool.checkedin(),
+        'checked_out': pool.checkedout(),
+        'overflow': pool.overflow(),
+        'total_connections': pool.size() + pool.overflow(),
+    })
 
 if __name__ == '__main__':
     # Create the media folder if it doesn't exist

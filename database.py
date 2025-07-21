@@ -34,3 +34,41 @@ def get_session():
         yield session
     finally:
         session.close()
+
+
+"""
+#Forma robusta de configurar
+import os
+from dotenv import load_dotenv
+from urllib.parse import quote_plus
+
+load_dotenv()
+
+class DatabaseConfig:
+    def __init__(self):
+        self.host = os.getenv('DB_HOST', 'localhost')
+        self.port = os.getenv('DB_PORT', '5432')
+        self.name = os.getenv('DB_NAME')
+        self.user = os.getenv('DB_USER')
+        self.password = os.getenv('DB_PASSWORD')
+        self.driver = os.getenv('DB_DRIVER', 'postgresql')
+    
+    def get_database_url(self):
+        if not all([self.name, self.user, self.password]):
+            raise ValueError("Missing required database environment variables")
+        
+        # URL encode password to handle special characters
+        encoded_password = quote_plus(self.password)
+        
+        return f"{self.driver}://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.name}"
+
+# Usage
+try:
+    db_config = DatabaseConfig()
+    DATABASE_URL = db_config.get_database_url()
+except ValueError as e:
+    print(f"Database configuration error: {e}")
+    DATABASE_URL = 'sqlite:///database.db'  # Fallback
+
+
+"""
