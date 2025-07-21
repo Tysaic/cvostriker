@@ -235,7 +235,14 @@ def security_middleware():
         print("Usuario debe Loguearse!")
     
         
-
+@app.after_request
+def cleanup_db_connections(response):
+    try:
+        if hasattr(engine, 'pool'):
+            engine.dispose()
+    except Exception as e:
+        app.logger.error(f"Error cleaning up connections: {e}")
+    return response
 
 """-----------------------URLS--------------------------"""
 @app.route('/', methods=['GET'])
