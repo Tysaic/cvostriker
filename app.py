@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify, send_from_directory, send_file, flash
+from flask import Flask, render_template, redirect, url_for, request, jsonify, send_from_directory, send_file, flash, g
 from flask import session as fsession
 from flask_wtf.csrf import CSRFProtect
 from flask_session import Session as FlaskSession
@@ -16,6 +16,8 @@ import datetime
 import pyotp
 import qrcode
 import base64
+import sys
+import logging
 
 """-----------------------Declaration--------------------------"""
 # Flask app
@@ -39,8 +41,43 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=60) # Set session l
 FlaskSession(app)
 csrf = CSRFProtect(app)
 
+# Loggin Configuration
 
-# Creating Database in case to be neccessary
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%d-%m-%Y %H:%M:%S",
+    filename='application.logs',
+    filemode="a"
+)
+
+#session Problems checkout
+"""
+@app.before_request
+def before_request():
+    #Se ejecuta ANTES de cada request#
+    g.db_session = Session()  # Crear sesión para este request
+    g.user_id = session.get('user_id')  # Flask session, no SQLAlchemy
+    print(f"🟢 Request started - Session created for {request.endpoint}")
+
+@app.teardown_appcontext  
+def close_db(error):
+    #Se ejecuta DESPUÉS de cada request#
+    if hasattr(g, 'db_session'):
+        if error:
+            g.db_session.rollback()
+            print("🔄 Session rolled back due to error")
+        g.db_session.close()
+        print("🔴 Session closed")
+
+# Ahora en tus rutas usas g.db_session
+@app.route('/get_user', methods=['GET'])
+def get_user():
+    try:
+        # Usar la sesión del contexto actual
+        user_info = g.db_session.query(User).get(1)
+        user = g.db_session.query(GeneralInfo).get(1)"""
+
 """----------------------------Basic Tools functions ----------------------------"""
 
 Base.metadata.create_all(bind=engine)
@@ -61,7 +98,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in fsession:
             flash('You need to log in first.')
-            print("User not logged in")
+            logging.info("User not logged in")
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -163,19 +200,23 @@ def login():
 @app.route('/logout', methods=['GET'])
 @login_required
 def logout():
-    session = Session()
-    user = get_session_user(session)
-    exists_current_session = session.query(SessionUser).filter_by(
-        user_id = user.id,
-        is_active = True
-    ).order_by(SessionUser.created_at.desc()).first()
-    exists_current_session.is_active = False
-    session.commit()
-    session.close()
-    fsession.pop('user_id', None)
-    fsession.pop('username', None)
-    fsession.clear()
-
+    try:
+        session = Session()
+        user = get_session_user(session)
+        exists_current_session = session.query(SessionUser).filter_by(
+            user_id = user.id,
+            is_active = True
+        ).order_by(SessionUser.created_at.desc()).first()
+        exists_current_session.is_active = False
+        session.commit()
+        session.close()
+        fsession.pop('user_id', None)
+        fsession.pop('username', None)
+        fsession.clear()
+    except Exception as error:
+        print("Exception Type:", type(error).__name__)
+        print("Error:", str(error))
+        print("Lines: ", sys.exc_info()[2].tb_lineno)
     return redirect(url_for('login'))
 
 @app.before_request
@@ -214,6 +255,7 @@ def security_middleware():
                 print("Usuario debe desloguearse!")
                 logout()
             else:
+                session.close()
                 print('Usuario aun puede seguir logueado, finaliza a las:', exists_current_session.expires_at )
                 return None
 
@@ -235,19 +277,20 @@ def security_middleware():
         print("Usuario debe Loguearse!")
     
         
-@app.after_request
+""" @app.after_request
 def cleanup_db_connections(response):
     try:
         if hasattr(engine, 'pool'):
             engine.dispose()
     except Exception as e:
         app.logger.error(f"Error cleaning up connections: {e}")
-    return response
+    return response """
 
 """-----------------------URLS--------------------------"""
 @app.route('/', methods=['GET'])
 @login_required
 def dashboard():
+    logging.info("Dashboard ingresado!")
     return render_template('dashboard.html')
 
 @app.route('/aboutme', methods=['GET', 'POST'])
